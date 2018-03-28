@@ -1,0 +1,10 @@
+{% extends 'base.html'%}
+{% load custom_tag %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      {{markdown_text | markdownify | safe}}
+    </div>
+  </div>
+{% endblock %}

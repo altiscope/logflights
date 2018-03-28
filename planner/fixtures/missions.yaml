@@ -1,0 +1,20 @@
+- model: planner.MissionType
+  pk: 1
+  fields:
+    title: None
+- model: planner.MissionType
+  pk: 2
+  fields:
+    title: Delivery
+- model: planner.MissionType
+  pk: 3
+  fields:
+    title: Imagery
+- model: planner.MissionType
+  pk: 4
+  fields:
+    title: Inspection
+- model: planner.MissionType
+  pk: 5
+  fields:
+    title: Test flight

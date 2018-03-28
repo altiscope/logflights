@@ -1,0 +1,23 @@
+*.pyc
+local_settings.py
+db.sqlite3
+.python-version
+.DS_Store
+media/
+
+# Generated static files
+staticfiles/
+
+# Ignore IntellIJ Idea config files.
+.idea
+
+# ignore env settings
+.env
+
+# frontend
+frontend/node_modules/
+frontend/coverage
+frontend/build
+frontend/stats.json
+frontend/internals/generators/
+frontend/internals/templates/

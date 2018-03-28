@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load custom_tag %}
+
+{% block page_level_css %}
+  <link href="{% static 'planner/css/profile.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+ <div class="container">
+        <div class="row">
+          <div class="col-md-4 col-sm-4 col-xs-12 text-center">
+            <div class="side-bar">
+              <img src="{% static 'planner/image/member.jpg' %}" alt="member" class="img-circle">
+              <h3>{{form.instance.first_name}}</h3>
+              <h5>{{form.instance.operator.organization}}</h5>
+                <ul class="account">
+                  <li>
+                    <a href="javascript:void(0);"><i class="fa fa-home"></i>Overview</a>
+                  </li>
+                  <li class="active">
+                    <a href="javascript:void(0);"><i class="fa fa-cog"></i>Account Settings</a>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0);"><i class="fa fa-info-circle"></i>Help</a>
+                  </li> 
+                </ul>
+            </div>  
+          </div>
+          <div class="col-md-8 col-sm-8 col-xs-12">
+            <div class="profile_account">
+              <div class="profile_head">
+                <h6>PROFILE ACCOUNT</h6>
+                <ul class="nav nav-tabs navbar-right" role="tablist">
+                  <li role="presentation" class="{% tabname 'personal_info' tab %}">
+                    <a href="#personal_info" aria-controls="personal_info" role="tab" data-toggle="tab">Personal Info</a>
+                  </li>
+                  <li role="presentation" class="{% tabname 'change_pass' tab %}">
+                    <a href="#change_pass" aria-controls="change_pass" role="tab" data-toggle="tab">Change Password</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="tab-content">
+                <div role="tabpanel" class="tab-pane {% tabname 'personal_info' tab %}" id="personal_info"> 
+                  <form class="signup" id="signup_form" method="post" action="{% url 'planner:edit_profile' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                      <label>First Name</label>
+                      <input type="text" name="first_name"  class="form-control" value="{{request.user.first_name}}" required="" >
+                      {{form.first_name.errors}}
+                    </div>
+                    <div class="form-group">
+                      <label>Last Name</label>
+                      <input name="last_name" type="text" class="form-control" value="{{request.user.last_name}}" required="" >
+                      {{form.last_name.errors}}
+                    </div>
+                    <div class="form-group">
+                      <label>Email</label>
+                      <input type="text" name="email"  class="form-control" value="{{request.user.email}}" required="" >
+                      {{form.email.errors}}
+                    </div>
+                    <div class="form-group">
+                      <label>Mobile Number</label>
+                      <input name="mobile_number" maxlength="15" type="text" class="form-control" value="{{request.user.operator.mobile_number}}" required="" >
+                      {{form.mobile_number.errors}}
+                    </div>
+                    <div class="form-group">
+                      <label>Organization</label>
+                      <input type="text" name="organization" maxlength="100" class="form-control"  value="{{request.user.operator.organization}}" required="" >
+                      {{form.organization.errors}}
+                    </div>
+                    <div class="form-group">
+                      <button class="btn green-btn">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+
+                <div role="tabpanel" class="tab-pane {% tabname 'change_pass' tab %}" id="change_pass">
+                  <form class="signup" id="signup_form" method="post" action="{% url 'planner:change_password' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                      <label>Current Password</label>
+                      <input type="password" class="form-control" name="oldpassword">
+                      {{form.oldpassword.errors}}
+                    </div>
+                    <div class="form-group">
+                      <label>New Password</label>
+                      <input type="password" class="form-control" name="password1">
+                      {{form.password1.errors}}
+                    </div>
+                    <div class="form-group">
+                      <label>Re-type New Password</label>
+                      <input type="password" class="form-control" name="password2">
+                    </div>
+                    <div class="form-group">
+                      <button class="btn green-btn">Change Password</button>
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+            </div> 
+          </div>
+        </div>
+      </div>
+}
+      
+
+{% endblock %}
+
+
+
+{% block js_block %}
+{% endblock %}

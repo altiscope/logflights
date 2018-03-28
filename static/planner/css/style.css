@@ -1,0 +1,342 @@
+
+body{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+}
+footer {
+  background-color: #666;
+  padding: 20px 0;
+  margin-top: 10px;
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.row {
+  margin: 0;
+}
+a:hover, a:focus {
+  outline: none;
+  text-decoration: none;
+  color: #59b4ea;
+}
+button:focus, .btn:focus {
+  outline: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  -ms-box-shadow: none;
+  -o-box-shadow: none;
+  box-shadow: none;
+}
+.padd-none {
+  padding: 0;
+}
+#header h1 {
+  color: #000;
+}
+.navbar {
+  background-color: #666;
+  border:none;
+}
+.navbar-nav>li>a {
+  color: #fff;
+}
+#header .navbar-toggle {
+  border-color: #59b4ea;
+}
+#header .icon-bar {
+  background-color: #59b4ea;
+}
+.menubar li a:hover, .menubar li a:focus {
+  background-color: #337ab7;
+}
+.menubar .dropdown-menu {
+  padding: 0;
+  border-top: 2px solid red;
+}
+.menubar .dropdown-menu>li>a {
+  padding: 10px 30px;
+}
+.nav .open>a, .nav .open>a:focus, .nav .open>a:hover {
+  background-color: #337ab7;
+}
+.login-btn {
+  color: #fff;
+  display: block;
+  line-height: 45px;
+}
+.white {
+  color: #fff;
+}
+.gray {
+  color: #ccc;
+}
+
+/*Welcome page */
+.search_flight {
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: #f6f6f6;
+  margin: 20px 0;
+  padding: 10px 5px;
+}
+
+/*Login page CSS*/
+
+.login-form {
+  height: 650px;
+}
+.login-first-half {
+  margin-top: 120px;
+}
+.login-first-half .forgot-pass {
+  margin-top: 5px;
+  display: block;
+}
+.login-first-half .forgot-pass:hover, .login-first-half .forgot-pass:focus {
+  color: #59b4ea;
+}
+.drone-bg {
+  background-image: url(../image/dron-background.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: fixed;
+  background-position: center center;
+  width: 50%;
+  height: 100%;
+  right: 0;
+}
+ .login-form .bg-gradient {
+  margin: 35px 0;
+  background-color: #59b4ea;
+}
+.login-form h2 {
+  padding-left: 20px;
+  font-size: 28px;
+  color: #717376;
+}
+.login-form h2 a {
+  margin: 26px 0;
+  font-size: 18px;
+}
+.login-form .form-control {
+  border: none;
+  outline: none;
+  border-bottom: 1px solid #ccc;
+}
+.login-form .form-control, .login-form .form-control:focus {
+  -webkit-box-shadow:inset-none;
+  -moz-box-shadow:none;
+  -ms-box-shadow:none;
+  -o-box-shadow:none;
+  box-shadow:none;
+  border-radius: 0;
+}
+.login-form .bg-gradient a {
+  color: #000;
+}
+.sign-up-text {
+  margin: 26px 0;
+}
+.sign-up-text a:hover {
+  color: #59b4ea;
+  text-decoration: none;
+}
+/*END login page CSS*/
+
+/*Signup page CSS*/
+
+.signup .bg-gradient {
+  margin: 15px 0px;
+  background-color: #59b4ea;
+}
+.signup .form-control {
+  -webkit-box-shadow:none;
+  -moz-box-shadow:none;
+  -ms-box-shadow:none;
+  -o-box-shadow:none;
+  box-shadow:none;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid #ccc;
+  border-radius: 0;
+}
+.signup .form-control:focus {
+  -webkit-box-shadow:none;
+  -moz-box-shadow:none;
+  -ms-box-shadow:none;
+  -o-box-shadow:none;
+  box-shadow:none;
+}
+.signup h1 {
+  color: #717376;
+}
+.signup a:hover {
+  color: #000;
+}
+.signup label {
+  padding-top: 10px;
+}
+.signup div.tos {
+  font-size: 0.8em;
+  height: 250px;
+  width: 100%;
+  overflow-y: scroll;
+  border: 1px;
+  border-style: solid;
+  border-color: #ccc;
+  padding: 5px;
+}
+.signup div.tos h2 {
+  font-size: 1.75em;
+  margin-top: 10px;
+}
+.signup div.tos h3 {
+  font-size: 1.3em;
+  margin-top: 8px;
+}
+.signup .tos-agreement {
+  padding: 10px 0;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+/*END Signup page CSS*/
+
+.m-t-10 {
+  margin-top: 10px;
+}
+.m-t-40 {
+  margin-top: 40px;
+}
+.m-b-20 {
+  margin-bottom: 20px;
+}
+
+.details label {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 100;
+  color: #242F3E;
+}
+p.time-schedual {
+  font-size: 2rem
+  color: red;
+}
+.details p {
+  font-size: 2rem;
+  color: #768FA9;
+}
+.current-time{
+  color: #717376;
+  font-size: 1.7rem;
+  font-weight: bold;
+}
+
+.datatable-container {
+  border: 2px solid #337ab7;
+}
+.datatable-container .nav {
+  background-color: #f6f6f6;
+  border-bottom: 1px solid #ddd;
+}
+.datatable-container .tab-content {
+  padding : 5px 15px;
+}
+.datatable-container .nav-pills > li > a {
+  border-radius: 0;
+}
+/*public view page CSS*/
+.margin-15{
+  margin-top: 15px;
+  margin-bottom: 30px;
+}
+.trace-select-width{
+  width: 45%;
+}
+ul.errorlist li{
+  color: red;
+  font-weight: bold;
+}
+/*END public view page CSS*/
+
+/*START msg: No flight plans available*/
+#map-msg>h3{
+  color: #337ab7;
+  padding-left: 412px;
+}
+#map-msg{
+  /*background-color: lightgrey;*/
+  width: 100%;
+  border: 2px solid #333;
+  padding: 25px;
+  margin: 25px;
+}
+/*END msg: No flight plans available*/
+
+#telemetry-id {
+    margin-top: 10px;
+}
+
+.glyphicon.spinning {
+    animation: spin 1s infinite linear;
+    -webkit-animation: spin2 1s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+.glyphicon-left {
+    margin-right: 7px;
+}
+
+/*START CSS for operator error message*/
+.operator-error{
+  color: red;
+  text-align: center;
+  font-size: 20px;
+}
+/*END CSS for operator error message*/
+@media screen and (max-width: 767px){
+  #header h1 {
+    font-size: 24px;
+  }
+  .menubar.navbar-nav>li {
+    width: 100%;
+  }
+  .navbar-nav .open .dropdown-menu {
+    background-color: #fff;
+    color: #fff;
+  }
+  .drone-bg {
+    position: inherit;
+    width: 100%;
+    height: 440px;
+  }
+  .login-form h2 {
+    font-size: 18px;
+  }
+  .login-form .bg-gradient {
+    margin: 12px 0 40px;
+  }
+}
+
+@media screen and (max-width: 992px){
+  }
+  .login-form h2 {
+    font-size: 20px;
+  }
+}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load widget_tweaks %}
+
+  {% block page_level_css %}
+  {% endblock %}
+
+  {% block content %}
+
+  <div class="container">
+    <h2>Flight Plans</h2>
+    {% if errormsg %}
+      <div class="alert alert-danger alert-dismissable">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+        <strong> {{ errormsg }} </strong>
+      </div>
+    {% endif %}
+    <div class="datatable-container">
+      <ul class="nav nav-pills">
+        <li class="active">
+          <a  href="#tab-active" data-toggle="tab">Active</a>
+        </li>
+        <li><a href="#tab-invalidated" data-toggle="tab">Invalidated</a>
+        </li>
+      </ul>
+      <div class="tab-content clearfix">
+        <div class="tab-pane active" id="tab-active">
+          <div class="table-responsive">
+            <table id="flightplan-details" class="table table-striped table-bordered" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Flight ID</th>
+                  <th>State</th>
+                  <th>Departure time</th>
+                  <th>Arrival time</th>
+                  <th>Payload weight</th>
+                  <th>Vehicle</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for flightplans in flightplans %}
+                  <tr>
+                    <td><a href="{% url 'planner:detail_flight_plan' flightplans.id %}">{{ flightplans.flight_id }}</a></td>
+                    <td>{{ flightplans.state|title }}</td>
+                    <td data-order="{{ flightplans.planned_departure_time|date:"U" }}">{{ flightplans.planned_departure_time }}</td>
+                    <td data-order="{{ flightplans.planned_arrival_time|date:"U" }}">{{ flightplans.planned_arrival_time }}</td>
+                    <td>{{ flightplans.payload_weight }}</td>
+                    <td>{{ flightplans.vehicle.serial_number }}</td>
+                    <td>
+                      <a href="{% url 'planner:detail_flight_plan' flightplans.id %}" class="btn btn-xs btn-default">Details</a>
+                      <a href="{% url 'planner:update_flight_plan' flightplans.id %}" class="btn btn-xs btn-default">Update</a>
+                      <a href="{% url 'planner:invalidate_flight_plan' flightplans.id %}" class="btn btn-xs btn-warning">Invalidate</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tab-pane" id="tab-invalidated">
+          <div class="table-responsive">
+            <table id="invalid-flightplan" class="table table-striped table-bordered" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Flight ID</th>
+                  <th>State</th>
+                  <th>Departure time</th>
+                  <th>Arrival time</th>
+                  <th>Payload weight</th>
+                  <th>Vehicle</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for flightplans in invalid_flightplan %}
+                  <tr>
+                    <td><a href="{% url 'planner:detail_flight_plan' flightplans.id %}">{{ flightplans.flight_id }}</a></td>
+                    <td>{{ flightplans.state|title }}</td>
+                    <td data-order="{{ flightplans.planned_departure_time|date:"U" }}">{{ flightplans.planned_departure_time }}</td>
+                    <td data-order="{{ flightplans.planned_arrival_time|date:"U" }}">{{ flightplans.planned_arrival_time }}</td>
+                    <td>{{ flightplans.payload_weight }}</td>
+                    <td>{{ flightplans.vehicle.serial_number }}</td>
+                    <td>
+                      <a href="{% url 'planner:detail_flight_plan' flightplans.id %}" class="btn btn-xs btn-default">Details</a>
+                      <a href="{% url 'planner:update_flight_plan' flightplans.id %}" class="btn btn-xs btn-default">Update</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% endblock %}
+
+  {% block js_block %}
+  {% endblock %}

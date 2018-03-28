@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load widget_tweaks %}
+
+{% block page_level_css %}
+{% endblock %}
+
+{% block content %}
+  <section class="details">
+    <div class="container">
+      <div class="row m-b-20">
+        <div class="col-sm-2">
+          <img src="{% static 'planner/image/dron-background.jpg' %}" alt="" width="170" height="100">
+          <div id="time" class="current-time"></div>
+        </div>
+        <div class="col-sm-2">
+          <label>Operator:</label>
+          <label>Flight ID:</label>
+          <label>Serial Number:</label>
+        </div>
+        <div class="col-sm-4">
+          <p>{{ flightplan.operator }}</p>
+          <p>{{ flightplan.flight_id }}</p>
+          <p>{{ flightplan.vehicle }}</p>
+        </div>
+        <div class="col-sm-4">
+
+        </div>
+      </div>
+
+      <div class="row m-b-20">
+        <div class="col-sm-5">
+          <label>Departure Time:</label>
+          <p class="time-schedual">{{ flightplan.planned_departure_time }}</p>
+        </div>
+        <div class="col-sm-5">
+          <label>Arrival Time:</label>
+          <p class="time-schedual">{{ flightplan.planned_arrival_time }}</p>
+        </div>
+        <div class="col-sm-2">
+          {% if flightplan.telemetry %}
+            <a href="{% url "planner:download_telemetry" id=flightplan.id %}" class="btn btn-sm btn-default"> Download telemetry </a>
+          {% endif %}
+          {% if user.is_authenticated %}
+              <form name="upload-telemetry" class="upload_form" data-type="telemetry" method="POST" enctype="multipart/form-data">
+                <input type="file"
+                  name="file"
+                  required
+                  class="id_file"
+                  id="telemetry_file_upload"
+                  data-id="{{flightplan.id}}"
+                  data-type="telemetry"
+                  data-button="tm_btn"
+                  data-filename-id=""
+                  data-result-id=""
+                  data-error-id="tm_error_id"
+                  data-upload-url-endpoint="{{ upload_url_endpoint }}"
+                  data-upload-done-endpoint="{{ upload_done_endpoint }}"
+                  value="Telemetry"
+                  style="display:none">
+                <button class="btn btn-sm open_upload {% if flightplan.telemetry is None %}btn-info{% else %}btn-link{% endif %}"
+                  id="tm_btn"
+                  data-reset-text="Upload telemetry"
+                  data-loading-text="<span class='glyphicon-left glyphicon glyphicon-refresh spinning'></span>Uploading"
+                  data-processing-text="<span class='glyphicon-left glyphicon glyphicon-refresh spinning'></span>Processing"
+                  data-done-text="Telemetry uploaded"
+                  data-target="telemetry_file_upload"
+                  type="button">
+                  {% if flightplan.telemetry is None %}
+                    Upload telemetry
+                  {% else %}
+                    Replace telemetry<br/>
+                  {% endif %}
+                </button>
+              </form>
+          {% endif %}
+        </div>
+      </div>
+      <div class="alert alert-danger m-t-10" id="tm_error_id" hidden="true"></div>
+
+      <div class="map-table-div">
+        <div id="map" style="width:100%;height:500px">
+        </div>
+
+        <section class="waypoints-list">
+          <h2>Waypoints</h2>
+          <div class="table-responsive">
+            <table id="vehicle-details" class="table table-striped table-bordered" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Waypoint</th>
+                  <th>Latitude</th>
+                  <th>Longitude</th>
+                  <th>Altitude (m, MSL)</th>
+                  <th>Above ground (m, AGL)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for waypoint in waypoints %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ waypoint.latitude }}</td>
+                    <td>{{ waypoint.longitude }}</td>
+                    <td>{% if waypoint.altitude_m %}{{ waypoint.altitude_m }}{% endif %}</td>
+                    <td>{% if waypoint.altitude_relative_m %}{{ waypoint.altitude_relative_m }}{% endif %}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div id="map-msg">
+        <h3>No waypoints available.</h3>
+      </div>
+
+    </div>
+  </section>
+{% endblock %}
+
+{% block js_block %}
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js"></script>
+  <script src="{% static 'planner/js/upload.js' %}"></script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJoHnPil_qHx_2Wnng1-pT4UFJs7btXkA">
+  </script>
+
+
+
+  <script type="text/javascript">
+
+    function initMap(response) {
+      /*loading map on web page */
+      var locations = [];
+      var telemetry_locations = [];
+      var icon='';
+      var waypoints = response.waypoints;
+      var telemetry = response.telemetry;
+
+      var center_lat = ''
+      var center_long = ''
+      if(waypoints !=''){
+        center_lat =  parseFloat(waypoints[0].latitude);
+        center_long =  parseFloat(waypoints[0].longitude);
+      }else if(telemetry !=''){
+        center_lat =  parseFloat(telemetry[0].latitude);
+        center_long =  parseFloat(telemetry[0].longitude);
+      }
+
+      if(center_lat != ''){
+        $("#map-msg").hide();
+        $(".map-table-div").show();
+        /*creating map object for display*/
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 8,/*set zoom level*/
+          center: new google.maps.LatLng(center_lat,center_long),/*set latlng of the center*/
+          scrollwheel: false,
+          styles: [ /*Style of map*/
+              {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
+              {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
+              {elementType: 'labels.text.fill', stylers: [{color: '#746855'}]},
+              {
+                featureType: 'administrative.locality',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#d59563'}]
+              },
+              {
+                featureType: 'poi',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#d59563'}]
+              },
+              {
+                featureType: 'poi.park',
+                elementType: 'geometry',
+                stylers: [{color: '#263c3f'}]
+              },
+              {
+                featureType: 'poi.park',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#6b9a76'}]
+              },
+              {
+                featureType: 'road',
+                elementType: 'geometry',
+                stylers: [{color: '#38414e'}]
+              },
+              {
+                featureType: 'road',
+                elementType: 'geometry.stroke',
+                stylers: [{color: '#212a37'}]
+              },
+              {
+                featureType: 'road',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#9ca5b3'}]
+              },
+              {
+                featureType: 'road.highway',
+                elementType: 'geometry',
+                stylers: [{color: '#746855'}]
+              },
+              {
+                featureType: 'road.highway',
+                elementType: 'geometry.stroke',
+                stylers: [{color: '#1f2835'}]
+              },
+              {
+                featureType: 'road.highway',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#f3d19c'}]
+              },
+              {
+                featureType: 'transit',
+                elementType: 'geometry',
+                stylers: [{color: '#2f3948'}]
+              },
+              {
+                featureType: 'transit.station',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#d59563'}]
+              },
+              {
+                featureType: 'water',
+                elementType: 'geometry',
+                stylers: [{color: '#17263c'}]
+              },
+              {
+                featureType: 'water',
+                elementType: 'labels.text.fill',
+                stylers: [{color: '#515c6d'}]
+              },
+              {
+                featureType: 'water',
+                elementType: 'labels.text.stroke',
+                stylers: [{color: '#17263c'}]
+              }
+            ]
+        });
+      }else{
+        $("#map-msg").show();
+        $(".map-table-div").hide();
+      }
+
+
+    if(waypoints !=''){
+        $.each( waypoints, function( key, value ) {
+          /*getting latlng and converting into format*/
+          items = ({'lat' : parseFloat(value.latitude), 'lng': parseFloat(value.longitude)});
+          locations.push(items);
+        });
+        var flightPath = new google.maps.Polyline({
+          path: locations,
+          geodesic: true,
+          strokeColor: '#F8FC04',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+        flightPath.setMap(map);
+
+        MarkerArray =[];
+        for(var i=0; i<locations.length; i++ ){
+          if(i==0){
+            icon='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=A|2DFB04|000000';
+            AddMarker(locations[i].lat, locations[i].lng);
+          }
+          else if(i==locations.length-1){
+            icon='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=B|FB0404|000000';
+            AddMarker(locations[i].lat, locations[i].lng);
+
+          }
+        }
+      }
+      if(telemetry !=''){
+        $.each( telemetry, function( key, value ) {
+          /*getting latlng and converting into format*/
+          items = ({'lat' : parseFloat(value.latitude), 'lng': parseFloat(value.longitude)});
+          telemetry_locations.push(items);
+        });
+        var telemetry_flightPath = new google.maps.Polyline({
+          path: telemetry_locations,
+          geodesic: true,
+          strokeColor: '#FF5733',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+        telemetry_flightPath.setMap(map);
+
+        telemetry_MarkerArray =[];
+        for(var i=0; i<telemetry_locations.length; i++ ){
+          if(i==0){
+            icon='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=C|ECF0F1|000000';
+            T_AddMarker(telemetry_locations[i].lat, telemetry_locations[i].lng);
+          }
+          else if(i==telemetry_locations.length-1){
+            icon='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=D|2980B9|000000';
+            T_AddMarker(telemetry_locations[i].lat, telemetry_locations[i].lng);
+
+          }
+        }
+
+      }
+
+
+      function AddMarker(lat, lng)/*Adding marker at source to destination*/
+      {
+        var latlng=CreateLatLngObject(lat, lng);
+        var marker = new google.maps.Marker({
+
+          position: latlng,
+          map: map,
+          icon: icon,/*icon for A and B point*/
+        });
+        MarkerArray.push(marker);
+      }
+
+
+      function T_AddMarker(lat, lng)/*Adding marker at source to destination*/
+      {
+        var latlng=CreateLatLngObject(lat, lng);
+        var marker = new google.maps.Marker({
+
+          position: latlng,
+          map: map,
+          icon: icon,/*icon for C and D point*/
+        });
+        telemetry_MarkerArray.push(marker);
+      }
+
+     function CreateLatLngObject(Latitude, Longitude) {
+        var latlng = new google.maps.LatLng(Latitude,Longitude);
+        return latlng;
+      }
+    }
+    /* AJAX will be call on page load */
+    $.ajax({
+       type: "GET",
+       url: "/planner/get-flight-plan-data/"+"{{flightplan.id}}",
+       success : function(response) {
+           initMap(response);
+       }
+    });
+
+    /*JS for set current time*/
+    $(document).ready(function(){
+      function checkTime(i) {
+        if (i < 10) {
+          i = "0" + i;
+        }
+        return i;
+      }
+
+      function startTime() {
+        var today = new Date();
+        var h = today.getHours();
+        var m = today.getMinutes();
+        var s = today.getSeconds();
+        var n = today.toUTCString();
+        /*add a zero in front of numbers<10*/
+        m = checkTime(m);
+        s = checkTime(s);
+        document.getElementById('time').innerHTML =  n;
+        t = setTimeout(function() {
+          startTime()
+        }, 500);
+      }
+      startTime();
+    });
+  </script>
+{% endblock %}

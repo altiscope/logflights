@@ -1,0 +1,59 @@
+{% load staticfiles %}
+{% load widget_tweaks %}
+{% load i18n %}
+{% load custom_tag %}
+{% get_strings as strings %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ strings.PRODUCT_NAME }}</title>
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600" rel="stylesheet">
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link href="{% static 'planner/css/style.css' %}" rel="stylesheet">
+    </head>
+    <body>
+        <section class="login-form">
+            <div class="row">
+              <div class="col-md-5 col-sm-5 col-xs-12">
+                <h2>{{ strings.PRODUCT_NAME }} Login <a href="{{ signup_url }}" class="sign-up-text">Sign Up</a></h2>
+
+                <div class="row login-first-half">
+                    <form class="login" method="POST" action="{% url 'account_login' %}">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                          <div class="alert alert-danger alert-dismissable">
+                            <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+                            <strong> {{form.non_field_errors}} </strong>
+                          </div>
+                        {% endif %}
+
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            {% render_field form.login class="form-control" %}
+                        </div>
+
+                        <div class="input-group log-in-footer">
+                        </div>
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            {% render_field form.password class="form-control" %}
+                        </div>
+                        <div class="input-group log-in-footer pull-right">
+                          <button class="btn bg-gradient" type="submit">Login</button>
+                        </div>
+                      </div>
+                  </form>
+                </div>
+              </div>
+              <div class="col-md-7 col-sm-7 col-xs-12 drone-bg">
+              </div>
+            </div>
+        </section>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </body>
+</html>

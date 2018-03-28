@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load widget_tweaks %}
+
+  {% block page_level_css %}
+  {% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="page-header">Add Flight Plan</h1>
+  {% if errormsg %}
+    <div class="alert alert-danger alert-dismissable">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+      <strong> {{ errormsg }} </strong>
+    </div>
+  {% endif %}
+  <form name="create-flight-plan" id="" method="POST" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.flight_id.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.flight_id class="form-control" %}
+        {{ form.flight_id.errors }}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.vehicle.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.vehicle class="form-control" %}
+        {{ form.vehicle.errors }}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.mission_type.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.mission_type class="form-control" %}
+        {{ form.mission_type.errors }}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.planned_departure_time.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.planned_departure_time class="form-control" %}
+        {{ form.planned_departure_time.errors }}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.planned_arrival_time.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.planned_arrival_time class="form-control" %}
+        {{ form.planned_arrival_time.errors }}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.payload_weight.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.payload_weight class="form-control" step="any" min="0" %}
+        {{ form.payload_weight.errors }}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.wm_id.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        <!-- <form name="upload-waypoints" class="upload_form" data-type="waypoints" method="POST" enctype="multipart/form-data"> -->
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-secondary open_upload {% if form.instance.waypoints is None %}btn-info{% else %}btn-default{% endif %}"
+              id="wm_btn"
+              data-reset-text="Upload"
+              data-loading-text="<span class='glyphicon-left glyphicon glyphicon-refresh spinning'></span>Uploading"
+              data-processing-text="<span class='glyphicon-left glyphicon glyphicon-refresh spinning'></span>Processing"
+              data-done-text="<span class='glyphicon glyphicon-remove'></span>"
+              data-target="waypoint_file_upload"
+              type="button">
+              {% if form.instance.waypoints is None %}
+                Upload
+              {% else %}
+                <span class='glyphicon glyphicon-remove'></span>
+              {% endif %}
+            </button>
+          </span>
+          <input type="text"
+            id="wm_filename_id"
+            class="form-control"
+            placeholder="No file uploaded"
+            {% if form.instance.waypoints %}
+            value="{{form.instance.waypoint_filename}}"
+            {% endif %}
+            disabled>
+        </div>
+        <div class="alert alert-danger m-t-10" id="wm_error_id" hidden="true"></div>
+        <input type="hidden" name="wm_id" id="wm_id" value="{% if form.instance.waypoints %}{{ form.instance.waypoints.id }}{% endif %}">
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+      </div>
+      <div class="col-sm-3">
+        <input type="submit" name="submit" value="Submit" class="btn btn-primary" id="fp_submit">
+      </div>
+    </div>
+  </form>
+  <input type="file"
+    name="file"
+    required
+    class="id_file"
+    id="waypoint_file_upload"
+    data-id="{{form.instance.id}}"
+    data-type="waypoints"
+    data-button="wm_btn"
+    data-disable-id="fp_submit"
+    data-filename-id="wm_filename_id"
+    data-result-id="wm_id"
+    data-error-id="wm_error_id"
+    data-upload-url-endpoint="{{ upload_url_endpoint }}"
+    data-upload-done-endpoint="{{ upload_done_endpoint }}"
+    value="Telemetry"
+    style="display:none">
+</div>
+
+<script src="{% static 'planner/js/upload.js' %}"></script>
+{% endblock %}

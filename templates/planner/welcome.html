@@ -1,0 +1,79 @@
+{% extends 'base.html'%}
+
+
+{% block page_level_css %}
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.css">
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="search_flight pull-right">
+        <form class="active form-inline" method="POST" name="arr-dept-time" id="welcome-filter">
+          {% csrf_token %}
+
+            <select class="form-control input-sm" id="select_operator" name="operator_id" style="width: 250px">
+              <option value="">Select an operator</option>
+              {% for operator in operators %}
+                <option value="{{ operator.id }}"> {{ operator.organization }}</option>
+              {% endfor %}
+            </select>
+            <input type="text" class="datepicker form-control input-sm" name="departuredtime" id="departuredtime" placeholder="Start date">
+            <input type="text" class="datepicker form-control input-sm" name="arrivaldtime" id="arrivaldtime" placeholder="End date">
+            <input type="submit" class="btn btn-primary btn-sm" id="submit-welcome-filter" value="Filter">
+            <button class="btn btn-default btn-sm" id="clear-welcome-filter">Reset</button>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="table-responsive">
+        <table id="plan-datatable" class="table table-striped table-bordered flight_detail_public" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Flight ID</th>
+              <th>State</th>
+              <th>Operator</th>
+              <th>Vehicle</th>
+              <th>Departure Time</th>
+              <th>Arrival Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+
+          <tbody>
+            {% for flightplan in flightplans %}
+              <tr>
+                <td>{{ flightplan.flight_id }}</td>
+                <td>{{ flightplan.state|title }}</td>
+                <td>{{ flightplan.operator }}</td>
+                <td>{{ flightplan.vehicle }}</td>
+                <td data-order="{{ flightplan.planned_departure_time|date:"U" }}">{{ flightplan.planned_departure_time }}</td>
+                <td data-order="{{ flightplan.planned_arrival_time|date:"U" }}">{{ flightplan.planned_arrival_time }}</td>
+                <td>
+                  <a href="{% url 'planner:detail_flight_plan' flightplan.id %}" class="btn btn-xs btn-default">Details</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block js_block %}
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js" ></script>
+
+  <script type="text/javascript">
+
+    $('.datepicker').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true
+    });
+
+  </script>
+{% endblock %}

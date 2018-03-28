@@ -1,0 +1,129 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tag %}
+{% get_strings as strings %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ strings.PRODUCT_NAME }}</title>
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600" rel="stylesheet">
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link href="{% static 'planner/css/style.css' %}" rel="stylesheet">
+    </head>
+  <body>
+    <div class="row signup">
+      <div class="col-md-1 col-sm-1 col-xs-12"></div>
+      <div class="col-md-5 col-sm-5 col-xs-12">
+        <h1>{% trans "Sign Up" %}</h1><br>
+
+        <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p><br>
+
+        <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">First Name:</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="first_name" required="" id="id_first_name" maxlength="100" type="text" placeholder="First Name"  class="form-control">
+              </div>
+            </div>
+          </div><br>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">Last Name:</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="last_name" required="" id="id_last_name" maxlength="100" type="text" placeholder="Last Name" class="form-control">
+              </div>
+            </div>
+          </div><br>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">Email:</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="email" required="" placeholder="E-mail address" id="id_email" type="email" placeholder="Email" class="form-control">
+              </div>
+            </div>
+            {{ form.errors.email }}
+          </div><br>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">Mobile Number:</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="mobile_number" id="id_mobile_number" maxlength="15" type="text" placeholder="Mobile Number" class="form-control">
+              </div>
+            </div>
+            {{ form.errors.mobile_number }}
+          </div><br>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">Organization:</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="organization" required="" id="id_organization" maxlength="100" type="text" placeholder="organization" class="form-control">
+              </div>
+            </div>
+          </div><br>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">Password:</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="password1" id="id_password1" maxlength="100" type="password" placeholder="Password" class="form-control">
+              </div>
+            </div>
+            {{ form.errors.password1 }}
+          </div><br>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-4 col-sm-4 col-xs-12 padd-none">
+                <label for="exampleInputEmail1">Password (again):</label>
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input name="password2" id="id_password2" maxlength="100" type="password" placeholder="Password (again)" class="form-control">
+              </div>
+            </div>
+            {{ form.errors.password2 }}
+          </div>
+
+          <h3 class="m-t-40">
+            <a target="_blank" href="{% url 'terms-of-service' %}">{{ strings.PRODUCT_NAME }} Terms of Service</a>
+          </h3>
+          <div class="tos">
+            {{ form.tos | markdownify | safe }}
+          </div>
+          <div class="tos-agreement">
+            Please indicate your agreement with these <a target="_blank" href="{% url 'terms-of-service' %}">terms of service</a> by clicking “Agree and Sign Up” below.
+            If you do not agree with all of these terms of service, please do not sign up for an account and do not click below.
+          </div>
+
+          {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+          {% endif %}
+          <div class="row m-b-20">
+            <button class="btn btn-primary" type="submit">{% trans "Agree and Sign Up" %}</button>
+          </div>
+        </form>
+      </div>
+      <div class="col-md-6 col-sm-6 col-xs-12 drone-bg">
+      </div>
+    </div>
+  </body>
+</html>

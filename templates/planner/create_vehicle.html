@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+  {% block page_level_css %}
+  {% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="page-header">Add vehicle </h1>
+  {% if errormsg %}
+    <div class="alert alert-danger alert-dismissable">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+      <strong> {{ errormsg }} </strong>
+    </div>
+  {% endif %}
+  <form name="create-vehicle" id="" method="POST" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.errors }}
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.vehicle_type.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.vehicle_type class="form-control" %}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.manufacturer.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.manufacturer class="form-control" %}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.model.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.model class="form-control" %}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.serial_number.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.serial_number class="form-control" %}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.empty_weight.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.empty_weight class="form-control" step="any" min="0"%}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+        <label>{{ form.state.label }}:</label>
+      </div>
+      <div class="col-sm-3">
+        {% render_field form.state class="form-control" %}
+      </div>
+    </div>
+    <div class="row m-b-20">
+      <div class="col-sm-3">
+      </div>
+      <div class="col-sm-3">
+        <input type="submit" name="submit" value="Submit" class="btn btn-primary">
+      </div>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+# NOTE: Only add to this list with new PKs
+# When deleting an item, remove it from this list AND from the database
+- model: planner.manufacturer
+  pk: 0
+  fields:
+    name: Not specified
+- model: planner.manufacturer
+  pk: 1
+  fields:
+    name: DJI
+- model: planner.manufacturer
+  pk: 2
+  fields:
+    name: Parrot
+- model: planner.manufacturer
+  pk: 3
+  fields:
+    name: Yuneec
+- model: planner.manufacturer
+  pk: 4
+  fields:
+    name: Kespry
+- model: planner.manufacturer
+  pk: 5
+  fields:
+    name: EHANG
+- model: planner.manufacturer
+  pk: 6
+  fields:
+    name: GoPro
+- model: planner.manufacturer
+  pk: 7
+  fields:
+    name: Intel
+- model: planner.manufacturer
+  pk: 8
+  fields:
+    name: EcoSoar
+- model: planner.manufacturer
+  pk: 9
+  fields:
+    name: ALTI
+- model: planner.manufacturer
+  pk: 10
+  fields:
+    name: UcanDrone
+- model: planner.manufacturer
+  pk: 11
+  fields:
+    name: Everdrone
+- model: planner.manufacturer
+  pk: 12
+  fields:
+    name: Flypulse
+- model: planner.manufacturer
+  pk: 13
+  fields:
+    name: 3D Robotics
+- model: planner.manufacturer
+  pk: 14
+  fields:
+    name: Hubsan
+- model: planner.manufacturer
+  pk: 15
+  fields:
+    name: Autel Robotics
+- model: planner.manufacturer
+  pk: 16
+  fields:
+    name: senseFly
+- model: planner.manufacturer
+  pk: 17
+  fields:
+    name: Vulcan UAV
+- model: planner.manufacturer
+  pk: 18
+  fields:
+    name: Trimble Navigation
+- model: planner.manufacturer
+  pk: 19
+  fields:
+    name: Freefly Systems
