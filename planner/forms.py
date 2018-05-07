@@ -7,12 +7,10 @@ from django.core.validators import RegexValidator
 from django.db.models import Case, Value, When
 from django.db.models.functions import Lower
 from django.forms import ModelChoiceField
-from .utils import get_terms_data
 
 class SignupForm(forms.ModelForm):
     first_name = forms.CharField(max_length=100)
     last_name = forms.CharField(max_length=100)
-    tos = get_terms_data(settings.TERMS_TOS)
 
     class Meta:
         model = Operator

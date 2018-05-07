@@ -27,12 +27,6 @@ from .models import Operator, Manufacturer, Vehicle, MissionType, FlightPlan, \
     Waypoint, WaypointMetadata, TelemetryMetadata, \
     document_path
 from .forms import VehicleForm, FlightPlanForm, EditProfileForm, ChangePasswordForm
-from .utils import get_terms_data
-
-def terms(request, name):
-    """Render tos markdown data to page"""
-    return render(request, 'planner/markdown_generic.html',
-        {'markdown_text': get_terms_data(name)})
 
 def welcome(request):
     # Only show operators that have at least 1 planned flight

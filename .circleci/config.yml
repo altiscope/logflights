@@ -23,9 +23,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          - v1-dependencies-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          # force clean cache when there's a cache miss
+          - v1-dependencies-{{ epoch }}
 
       - run:
           name: install dependencies
@@ -37,7 +37,7 @@ jobs:
       - save_cache:
           paths:
             - ./vtest
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ .Branch }}-{{ checksum "requirements.txt" }}
 
       # set env to test
       - run:

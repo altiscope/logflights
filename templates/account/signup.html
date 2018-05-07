@@ -106,9 +106,6 @@
           <h3 class="m-t-40">
             <a target="_blank" href="{% url 'terms-of-service' %}">{{ strings.PRODUCT_NAME }} Terms of Service</a>
           </h3>
-          <div class="tos">
-            {{ form.tos | markdownify | safe }}
-          </div>
           <div class="tos-agreement">
             Please indicate your agreement with these <a target="_blank" href="{% url 'terms-of-service' %}">terms of service</a> by clicking “Agree and Sign Up” below.
             If you do not agree with all of these terms of service, please do not sign up for an account and do not click below.

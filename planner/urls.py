@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^vehicle/$', views.vehicle, name="vehicle"),
     url(r'^create-vehicle/$', views.create_vehicle, name="create_vehicle"),
     url(r'^update-vehicle/(?P<id>[0-9a-z]+)/$', views.update_vehicle, name="update_vehicle"),
+    url(r'^terms/$', views.terms, name="terms"),
 
     url(r'^flightplan/$', views.flightplan, name="flightplan"),
     url(r'^create-flight-plan/$', views.create_flight_plan, name="create_flight_plan"),

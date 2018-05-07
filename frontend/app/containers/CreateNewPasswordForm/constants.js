@@ -1,0 +1,12 @@
+/*
+ *
+ * CreateNewPasswordForm constants
+ *
+ */
+
+const NAMESPACE = 'app/CreateNewPasswordForm';
+
+export const CREATE_NEW_PASSWORD = `${NAMESPACE}/CREATE_NEW_PASSWORD`;
+export const CREATE_NEW_PASSWORD_PENDING = `${NAMESPACE}/CREATE_NEW_PASSWORD_PENDING`;
+export const CREATE_NEW_PASSWORD_FULFILLED = `${NAMESPACE}/CREATE_NEW_PASSWORD_FULFILLED`;
+

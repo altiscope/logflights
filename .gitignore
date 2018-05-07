@@ -4,6 +4,15 @@ db.sqlite3
 .python-version
 .DS_Store
 media/
+npm-debug.log
+static/react/
+*.rdb
+
+# Generated static files
+staticfiles/
+
+dev.sh
+dev.celery.sh
 
 # Generated static files
 staticfiles/
@@ -21,3 +30,5 @@ frontend/build
 frontend/stats.json
 frontend/internals/generators/
 frontend/internals/templates/
+frontend/npm-debug.log
+frontend/yarn-error.log
