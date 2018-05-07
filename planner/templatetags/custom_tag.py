@@ -1,7 +1,6 @@
 from django.conf import settings
 from django import template
 from importlib import import_module
-import markdown
 
 register = template.Library()
 strings = import_module(settings.STRINGS)
@@ -21,8 +20,3 @@ def get_strings():
 @register.filter
 def subtract(value, arg):
     return value - arg
-
-@register.filter
-def markdownify(text):
-    # safe_mode governs how the function handles raw HTML
-    return markdown.markdown(text, safe_mode='escape')

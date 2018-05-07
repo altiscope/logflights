@@ -84,7 +84,45 @@ In a separate window, run celery to process asynchronous tasks:
 
 Log into the admin console and set up default fields:
 
-http://127.0.0.1:8000/admin
+http://127.0.0.1:8000/_/admin/
+
+## Running log.flights Frontend
+
+### Installing Dependencies
+```
+cd frontend/ && yarn
+```
+
+### Running the application
+```
+cd frontend/ && yarn run dev
+```
+
+App will run at:
+
+http://127.0.0.1:3000
+
+To ensure it is possible to upload waypoint or telemetry files from the development URL, set `LOCAL_DEV` to `True` in `logflights/settings.py`.
+
+
+### Lint before commit
+```
+cd frontend/ && yarn run lint
+```
+
+or lint staged files only
+```
+cd frontend/ && yarn run lint:staged
+```
+
+### Running Tests
+
+```
+cd frontend/ && yarn run test
+```
+
+#### Note on static files
+- `terms-of-service.md` and `privacy-policy.md` are loaded by webpack markdown loader from `frontend/app/static`
 
 ## Supported file formats
 

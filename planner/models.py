@@ -84,7 +84,7 @@ class Operator(models.Model):
     mobile_regex = RegexValidator(regex=r'^\+\d{10,15}$',
         message='Phone number must be entered in the format: +9999999999. 10 to 15 digits allowed.')
     mobile_number = models.CharField('mobile phone number',
-        max_length=15,
+        max_length=16,
         validators=[mobile_regex],
         blank=True)
     is_test = models.BooleanField('Test account', default=False)

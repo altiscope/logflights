@@ -806,7 +806,8 @@ def process_telemetry(fp_id, tm_id):
     if res > 0:
         logger.debug('Processing completed for flight plan ' + str(fp.id) + \
             ' with ' + str(res) + ' records.')
-        fp.state = FlightPlan.STATE_COMPLETED
+        if fp.state != FlightPlan.STATE_INVALID:
+           fp.state = FlightPlan.STATE_COMPLETED
         fp.telemetry = tm
         fp.save()
         fp.telemetrymetadata_set.all().exclude(id=tm.id).delete()
