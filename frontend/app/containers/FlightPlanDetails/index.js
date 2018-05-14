@@ -20,7 +20,6 @@ import reducer from './reducer';
 import saga from './saga';
 import FlightCard from './FlightCard';
 import FlightInfo from './FlightInfo';
-import WaypointsGrid from './WaypointsGrid';
 import Map from './Map';
 import {
   getPlan,
@@ -32,8 +31,7 @@ import {
   deleteTelemetry,
 } from './actions';
 
-export class FlightPlanDetails extends React.Component { // eslint-disable-line react/prefer-stateless-function
-
+export class FlightPlanDetails extends React.Component {
   componentWillMount() {
     const planId = this.props.match.params.id;
 
@@ -46,20 +44,25 @@ export class FlightPlanDetails extends React.Component { // eslint-disable-line 
     this.props.clearPlanDetailsState();
   }
 
-  getDate = () => (
-    (new Date()).toLocaleDateString('en-US', {
+  getDate = () =>
+    new Date().toLocaleDateString('en-US', {
       timeZone: 'UTC',
       weekday: 'short',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    })
-  );
+    });
 
   render() {
     const { flightPlanDetails } = this.props;
-    const { getFlightPlanPending, getWaypointsPending, telemetryProcessing, getTelemetryPending } = flightPlanDetails.ui;
-    const isLoading = getFlightPlanPending || getWaypointsPending || telemetryProcessing || getTelemetryPending;
+    const {
+      getFlightPlanPending,
+      getWaypointsPending,
+      telemetryProcessing,
+      getTelemetryPending,
+    } = flightPlanDetails.ui;
+    const isLoading =
+      getFlightPlanPending || getWaypointsPending || telemetryProcessing || getTelemetryPending;
 
     const telemetry = _.get(flightPlanDetails.data, 'telemetry', []);
     return (
@@ -87,7 +90,11 @@ export class FlightPlanDetails extends React.Component { // eslint-disable-line 
             <Col span="24">
               <Map
                 organization={_.get(this.props, 'currentUser.organization', '')}
-                flightPlanOperator={_.get(this.props.flightPlanDetails.data, 'flightPlan.operator', '')}
+                flightPlanOperator={_.get(
+                  this.props.flightPlanDetails.data,
+                  'flightPlan.operator',
+                  ''
+                )}
                 mode={this.props.mode}
                 matchUrl={this.props.match.url}
                 waypoints={flightPlanDetails.data.waypoints}
@@ -96,9 +103,6 @@ export class FlightPlanDetails extends React.Component { // eslint-disable-line 
                 getTelemetryFulfilled={flightPlanDetails.ui.getTelemetryFulfilled}
                 uploadTelemetryPending={flightPlanDetails.ui.uploadTelemetryPending}
               />
-            </Col>
-            <Col span="24">
-              <WaypointsGrid waypoints={flightPlanDetails.data.waypoints.waypoints} />
             </Col>
           </Row>
         </Spin>
@@ -147,8 +151,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'flightPlanDetails', reducer });
 const withSaga = injectSaga({ key: 'flightPlanDetails', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(FlightPlanDetails);
+export default compose(withReducer, withSaga, withConnect)(FlightPlanDetails);

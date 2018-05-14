@@ -24,7 +24,6 @@ const initialState = fromJS({
 
 function plannerIndexReducer(state = initialState, action) {
   switch (action.type) {
-
     case GET_PLANNED_FLIGHTS_PENDING:
       return state.setIn(['ui', 'getPlannedFlightsPending'], action.payload.isPending);
 

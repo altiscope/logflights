@@ -50,9 +50,8 @@ class MissionTypeSerializer(serializers.ModelSerializer):
 class WaypointSerializer(serializers.ModelSerializer):
     class Meta:
         model = Waypoint
-        fields = ("latitude", "longitude", "altitude_relative")
+        fields = ("order", "latitude", "longitude", "altitude", "altitude_relative")
         ordering = ('order',)
-
 
 class WaypointMetadataSerializer(serializers.ModelSerializer):
     waypoints = WaypointSerializer(many=True)
@@ -60,7 +59,6 @@ class WaypointMetadataSerializer(serializers.ModelSerializer):
     class Meta:
         model = WaypointMetadata
         fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message', 'waypoints')
-
 
 class WaypointMetadataDetailSerializer(serializers.ModelSerializer):
 
@@ -182,10 +180,11 @@ class UserUpdateSerializer(serializers.HyperlinkedModelSerializer):
     first_name = serializers.CharField(write_only=True, required=False)
     last_name = serializers.CharField(write_only=True, required=False)
     email = serializers.CharField(write_only=True, required=False)
+    altitude_unit = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = Operator
-        fields = ('email', 'first_name', 'last_name', 'organization', 'mobile_number')
+        fields = ('email', 'first_name', 'last_name', 'organization', 'mobile_number', 'altitude_unit')
 
     def to_representation(self, instance):
         result = super(UserUpdateSerializer, self).to_representation(instance)
@@ -193,6 +192,8 @@ class UserUpdateSerializer(serializers.HyperlinkedModelSerializer):
         result['first_name'] = instance.user.first_name
         result['last_name'] = instance.user.last_name
         result['email'] = instance.user.email
+        result['username'] = instance.user.username
+        result['altitude_unit'] = instance.altitude_unit
         return result
 
     def update(self, instance, validated_data):
@@ -203,6 +204,8 @@ class UserUpdateSerializer(serializers.HyperlinkedModelSerializer):
             instance.organization = validated_data.get('organization', instance.organization)
         if 'mobile_number' in validated_data:
             instance.mobile_number = validated_data.get('mobile_number', instance.mobile_number)
+        if 'altitude_unit' in validated_data:
+            instance.altitude_unit = validated_data.get('altitude_unit', instance.altitude_unit)
         instance.save()
 
         user_obj = instance.user

@@ -24,22 +24,16 @@ const VEHICLES_LIST_PATH = (url) => `${url}`;
 const CREATE_VEHICLE_PATH = (url) => `${url}/new`;
 const UPDATE_VEHICLE_PATH = (url) => `${url}/:id/update`;
 
-export class VehiclesPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    const { match } = this.props;
-
-    return (
-      <div>
-        <Switch>
-          <Route exact path={VEHICLES_LIST_PATH(match.url)} component={VehiclesList} />
-          <Route exact path={CREATE_VEHICLE_PATH(match.url)} component={VehicleForm} />
-          <Route path={UPDATE_VEHICLE_PATH(match.url)} component={VehicleForm} />
-          <Route path="" render={() => (<Redirect push to="/not-found" />)} />
-        </Switch>
-      </div>
-    );
-  }
-}
+export const VehiclesPage = ({ match }) => (
+  <div>
+    <Switch>
+      <Route exact path={VEHICLES_LIST_PATH(match.url)} component={VehiclesList} />
+      <Route exact path={CREATE_VEHICLE_PATH(match.url)} component={VehicleForm} />
+      <Route path={UPDATE_VEHICLE_PATH(match.url)} component={VehicleForm} />
+      <Route path="" render={() => <Redirect push to="/not-found" />} />
+    </Switch>
+  </div>
+);
 
 VehiclesPage.propTypes = {
   match: PropTypes.object,
@@ -60,8 +54,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'vehiclesPage', reducer });
 const withSaga = injectSaga({ key: 'vehiclesPage', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(VehiclesPage);
+export default compose(withReducer, withSaga, withConnect)(VehiclesPage);

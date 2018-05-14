@@ -19,12 +19,12 @@ export const FlightInfoWrapper = styled(Card)`
   border: 0;
   &:hover {
     border-color: #fff;
-    box-shadow: none!important;
-  };
+    box-shadow: none !important;
+  }
 
   > .ant-card-body {
     padding: 0;
-  };
+  }
 `;
 
 export const Info = styled.div`

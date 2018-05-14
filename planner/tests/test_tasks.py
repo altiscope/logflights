@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import datetime
 from decimal import Decimal
 import os
@@ -10,7 +8,7 @@ import shutil
 from django.test import TestCase, tag
 from django.test.utils import override_settings
 
-import utils
+from . import utils
 
 from planner.models import FlightPlan, MissionType, TelemetryMetadata, WaypointMetadata
 import planner.tasks
@@ -57,7 +55,14 @@ class Waypoints(TestCase):
         )
         planner.tasks.process_waypoints(wm.id)
         wm.refresh_from_db()
+
         self.assertEqual(wm.state, WaypointMetadata.STATE_PROCESSED)
+        self.assertEqual(wm.location, 'Nephi, UT, US')
+        self.assertEqual(wm.country, 'US')
+        self.assertEqual(wm.start_longitude, Decimal('-111.760975'))
+        self.assertEqual(wm.start_latitude, Decimal('39.727203'))
+        self.assertAlmostEqual(wm.distance, 172992.9494783)
+
         waypoints = wm.waypoints.order_by('order')
         self.assertEqual(len(waypoints), 5)
         self.assertEqual(waypoints[0].order, 1)
@@ -91,6 +96,14 @@ class Waypoints(TestCase):
         )
         ret = planner.tasks.process_kml_waypoints(wm, test_file)
         self.assertGreater(ret, 0)
+        wm.refresh_from_db()
+
+        self.assertEqual(wm.location, 'Coatesville, PA, US')
+        self.assertEqual(wm.country, 'US')
+        self.assertEqual(wm.start_longitude, Decimal('-75.733496'))
+        self.assertEqual(wm.start_latitude, Decimal('39.909188'))
+        self.assertAlmostEqual(wm.distance, 161.62321098)
+
         waypoints = wm.waypoints.order_by('order')
         self.assertEqual(len(waypoints), 279)
         self.assertEqual(waypoints[0].order, 1)
@@ -284,10 +297,16 @@ class Telemetry(TestCase):
         fp.refresh_from_db()
         tm.refresh_from_db()
         self.assertEqual(fp.state, FlightPlan.STATE_COMPLETED)
+        self.assertEqual(tm.start_latitude, Decimal('-8.308649'))
+        self.assertEqual(tm.start_longitude, Decimal('-74.606991'))
+        self.assertAlmostEqual(tm.distance, 6125.68281786)
+        self.assertEqual(tm.country, 'PE')
+        self.assertEqual(tm.location, 'Pucallpa, Peru')
+
         telemetry = tm.telemetries.order_by('time')
         self.assertEqual(len(telemetry), 999)
         self.assertEqual(tm.state, TelemetryMetadata.STATE_PROCESSED)
-        self.assertEqual(telemetry[0].longitude, Decimal('-74.606991'))
+        self.assertEqual(telemetry[0].latitude, Decimal('-8.308649'))
         self.assertEqual(telemetry[0].longitude, Decimal('-74.606991'))
         self.assertEqual(telemetry[0].batt, 28)
         self.assertEqual(telemetry[0].voltage, 13509)
@@ -325,7 +344,7 @@ class Telemetry(TestCase):
         self.assertEqual(telemetry[500].altitude, 156530)
         self.assertEqual(telemetry[500].longitude, Decimal('-74.596521'))
         self.assertEqual(telemetry[500].latitude, Decimal('-8.340345'))
-        self.assertEqual(telemetry[500].heading, 8.0)
+        self.assertEqual(telemetry[500].heading, 8.16)
         self.assertEqual(telemetry[500].vx, -44.0)
         self.assertEqual(telemetry[500].vy, 133.0)
         self.assertEqual(telemetry[500].vz, -66.0)
@@ -356,7 +375,7 @@ class Telemetry(TestCase):
         # test start point
         self.assertEqual(telemetry[0].latitude, Decimal('30.390089'))
         self.assertEqual(telemetry[0].longitude, Decimal('-97.581011'))
-        self.assertEqual(telemetry[0].time, datetime.datetime(2017, 7, 3, 22, 54, 14, 779467, tzinfo=UTC))
+        self.assertEqual(telemetry[0].time, datetime.datetime(2017, 7, 4, 16, 54, 14, 779467, tzinfo=UTC))
         self.assertEqual(telemetry[0].altitude_relative, 18)
         self.assertEqual(telemetry[0].altitude, 18475)
 
@@ -366,18 +385,18 @@ class Telemetry(TestCase):
         self.assertEqual(telemetry[5001].longitude, Decimal('-97.580896'))
         self.assertEqual(telemetry[5001].latitude, Decimal('30.389375'))
         self.assertEqual(telemetry[5001].voltage, 13656)
-        self.assertEqual(telemetry[5001].time, datetime.datetime(2017, 7, 3, 22, 57, 57, 700093, tzinfo=UTC))
+        self.assertEqual(telemetry[5001].time, datetime.datetime(2017, 7, 4, 16, 57, 57, 700093, tzinfo=UTC))
 
         self.assertEqual(telemetry[5004].vx, -119.99999120408047)
         self.assertEqual(telemetry[5004].vy, -149.0000025905529)
         self.assertEqual(telemetry[5004].vz, -65.99999666213989)
-        self.assertEqual(telemetry[5004].time, datetime.datetime(2017, 7, 3, 22, 57, 57, 791910, tzinfo=UTC))
+        self.assertEqual(telemetry[5004].time, datetime.datetime(2017, 7, 4, 16, 57, 57, 791910, tzinfo=UTC))
 
         # test current and voltage is reported and combined with position reading
         self.assertEqual(telemetry[6486].current, 21750)
         self.assertEqual(telemetry[6486].voltage, 13397)
         self.assertEqual(telemetry[6486].altitude, 25381)
-        self.assertEqual(telemetry[6486].time, datetime.datetime(2017, 7, 3, 22, 58, 48, 937716, tzinfo=UTC))
+        self.assertEqual(telemetry[6486].time, datetime.datetime(2017, 7, 4, 16, 58, 48, 937716, tzinfo=UTC))
 
     @tag('slow')
     def test_process_csv_airdata1_file(self):
@@ -535,7 +554,7 @@ class Telemetry(TestCase):
         # test mid point
         self.assertEqual(telemetry[450].latitude, Decimal('-7.953188'))
         self.assertEqual(telemetry[450].longitude, Decimal('-74.839287'))
-        self.assertEqual(telemetry[450].time, datetime.datetime(2017, 6, 22, 20, 19, 5, 522776, tzinfo=UTC))
+        self.assertEqual(telemetry[450].time, datetime.datetime(2017, 6, 22, 20, 19, 5, 522777, tzinfo=UTC))
         self.assertEqual(telemetry[450].altitude, 26570)
 
         # test multi-segment time interpolation
@@ -567,7 +586,7 @@ class Telemetry(TestCase):
         # test mid point
         self.assertEqual(telemetry[450].latitude, Decimal('-7.953188'))
         self.assertEqual(telemetry[450].longitude, Decimal('-74.839287'))
-        self.assertEqual(telemetry[450].time, datetime.datetime(2017, 6, 22, 20, 19, 5, 522776, tzinfo=UTC))
+        self.assertEqual(telemetry[450].time, datetime.datetime(2017, 6, 22, 20, 19, 5, 522777, tzinfo=UTC))
         self.assertEqual(telemetry[450].altitude, 26570)
 
         # test multi-segment time interpolation

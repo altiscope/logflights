@@ -4,6 +4,7 @@ injectGlobal`
   .hidden {
     display: none;
   }
+
 `;
 
 /* eslint no-unused-expressions: 0 */

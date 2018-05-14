@@ -5,10 +5,7 @@
  */
 
 import { fromJS } from 'immutable';
-import {
-  SIGNUP_PENDING,
-  SIGNUP_FULFILLED,
-} from './constants';
+import { SIGNUP_PENDING, SIGNUP_FULFILLED } from './constants';
 
 const initialState = fromJS({
   ui: {

@@ -12,10 +12,9 @@ import { ClonePlanButton } from './styles';
 const FormItem = Form.Item;
 
 class CloneFlightPlanLink extends PureComponent {
-
   state = {
     visible: false,
-  }
+  };
 
   componentWillReceiveProps(nextProps) {
     // Hide the popover after the form has been saved.
@@ -28,7 +27,7 @@ class CloneFlightPlanLink extends PureComponent {
     this.setState({
       visible: false,
     });
-  }
+  };
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -40,7 +39,7 @@ class CloneFlightPlanLink extends PureComponent {
 
       return this.props.cloneFlightPlan(this.props.flightPlanId, values.flightId);
     });
-  }
+  };
 
   popoverContent = () => {
     const { getFieldDecorator } = this.props.form;
@@ -50,18 +49,20 @@ class CloneFlightPlanLink extends PureComponent {
     return (
       <Form onSubmit={this.handleSubmit}>
         <FormItem style={formItemStyle} hasFeedback>
-          { getFieldDecorator('flightId', {
+          {getFieldDecorator('flightId', {
             rules: [{ required: true, message: 'Please enter a new flight ID' }],
           })(<Input placeholder="New Flight ID" />)}
         </FormItem>
-        <ClonePlanButton loading={cloneFlightPlanPending} htmlType="submit" type="primary">Clone</ClonePlanButton>
+        <ClonePlanButton loading={cloneFlightPlanPending} htmlType="submit" type="primary">
+          Clone
+        </ClonePlanButton>
       </Form>
     );
-  }
+  };
 
   handleVisibleChange = (visible) => {
     this.setState({ visible });
-  }
+  };
 
   render() {
     return (

@@ -1,19 +1,22 @@
-# Python CircleCI 2.0 configuration file
+# CircleCI 2.0 configuration file
 #
-# Check https://circleci.com/docs/2.0/language-python/ for more details
+# Referennce:
+# - Python - https://circleci.com/docs/2.0/language-python/
+# - Node - https://circleci.com/docs/2.0/language-javascript/
 #
 version: 2
 jobs:
-  build:
+  build-python:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:2.7.13
+      - image: circleci/python:3.6.5
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
       # - image: circleci/postgres:9.4
+      - image: redis
 
     working_directory: ~/repo
 
@@ -30,7 +33,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python -m virtualenv vtest
+            python -m venv vtest
             . vtest/bin/activate
             pip install -r requirements.txt
 
@@ -44,15 +47,53 @@ jobs:
           name: create local settings
           command: |
             touch logflights/local_settings.py
-            echo "LOGFLIGHTS_ENVIRONMENT='ci'" > logflights/local_settings.py
+            echo "LOGFLIGHTS_ENVIRONMENT='ci'" >> logflights/local_settings.py
+            echo "GOOGLE_MAPS_API_KEY='${GOOGLE_MAPS_API_KEY}'" >> logflights/local_settings.py
 
       # run tests!
       - run:
           name: run tests
           command: |
             . vtest/bin/activate
-            python manage.py test
+            make test-all
 
       - store_artifacts:
           path: test-reports
           destination: test-reports
+
+  build-frontend:
+    docker:
+      - image: circleci/node:8.9.1
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+          - dependencies-{{ checksum "frontend/package.json" }}
+          - dependencies-
+
+      - run:
+          working_directory: frontend
+          command: |
+            yarn install
+
+      - save_cache:
+          paths:
+            - frontend/node_modules
+          key: dependencies-{{ checksum "frontend/package.json" }}
+
+      - run:
+          working_directory: frontend
+          name: lint frontend
+          command: |
+            yarn run lint
+
+workflows:
+  version: 2
+  build:
+      jobs:
+        - build-python
+        - build-frontend

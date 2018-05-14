@@ -15,17 +15,22 @@ Upload waypoints: file upload
 */
 
 export const requiredRule = (message = 'This field is required') => ({
-  rules: [{
-    required: true,
-    message,
-  }],
+  rules: [
+    {
+      required: true,
+      message,
+    },
+  ],
 });
 
 export const arrivalDateRule = (validator = () => true) => ({
-  rules: [{
-    required: true,
-    message: 'Arrival date is required',
-  }, {
-    validator,
-  }],
+  rules: [
+    {
+      required: true,
+      message: 'Arrival time is required',
+    },
+    {
+      validator,
+    },
+  ],
 });

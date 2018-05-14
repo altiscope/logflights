@@ -4,11 +4,7 @@
  *
  */
 
-import {
-  RESET_PASSWORD,
-  RESET_PASSWORD_PENDING,
-  RESET_PASSWORD_FULFILLED,
-} from './constants';
+import { RESET_PASSWORD, RESET_PASSWORD_PENDING, RESET_PASSWORD_FULFILLED } from './constants';
 
 export function resetPassword(email) {
   return {

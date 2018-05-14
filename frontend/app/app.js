@@ -45,6 +45,7 @@ import '!file-loader?name=[name].[ext]!./images/icon-512x512.png';
 import '!file-loader?name=[name].[ext]!./manifest.json';
 import { initialize as initializeAPI } from 'services/api';
 import { initialize as initializeEnv } from 'services/env';
+import { initialize as initializeGoogleAnalytics } from 'services/AnalyticsTracker';
 
 // import 'file-loader?name=[name].[ext]!./.htaccess'; // eslint-disable-line import/extensions
 /* eslint-enable import/no-webpack-loader-syntax */
@@ -60,6 +61,11 @@ initializeAPI({
 // Initial env vars
 initializeEnv({
   appDomain: process.env.APP_DOMAIN,
+});
+
+// Google Analytics tracking
+initializeGoogleAnalytics({
+  trackingId: process.env.GOOGLE_ANALYTICS_TRACKING_ID,
 });
 
 // Import i18n messages
@@ -124,10 +130,7 @@ if (!window.Intl) {
     resolve(import('intl'));
   })
     .then(() =>
-      Promise.all([
-        import('intl/locale-data/jsonp/en.js'),
-        import('intl/locale-data/jsonp/de.js'),
-      ])
+      Promise.all([import('intl/locale-data/jsonp/en.js'), import('intl/locale-data/jsonp/de.js')])
     )
     .then(() => render(translationMessages))
     .catch((err) => {

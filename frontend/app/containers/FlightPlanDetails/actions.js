@@ -25,7 +25,6 @@ import {
   TELEMETRY_PROCESSING,
 } from './constants';
 
-
 export function telemetryProcessing(isProcessing) {
   return {
     type: TELEMETRY_PROCESSING,

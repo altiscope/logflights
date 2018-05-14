@@ -8,12 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Row, Dropdown, Menu, Icon } from 'antd';
 import { Link } from 'react-router-dom';
-import {
-  PlannerHeader,
-  Trigger,
-  UserAvatar,
-  UserLink,
-} from './styles';
+import { PlannerHeader, Trigger, UserAvatar, UserLink } from './styles';
 
 const PROFILE_PATH = (url) => `${url}/settings/profile`;
 const CHANGE_PASSWORD_PATH = (url) => `${url}/settings/change-password`;

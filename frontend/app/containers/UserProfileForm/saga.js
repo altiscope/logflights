@@ -15,6 +15,7 @@ import {
   updateUserProfilePending,
   updateUserProfileFulfilled,
 } from './actions';
+import { getCurrentUser } from '../PlannerWrapper/actions';
 
 export function* getUserProfile() {
   try {
@@ -36,6 +37,8 @@ export function* updateUserProfile(action) {
 
     yield put(updateUserProfileFulfilled(response.data));
     message.success('Profile successfully updated');
+    // Reload current user
+    yield put(getCurrentUser());
   } catch (e) {
     yield put(updateUserProfilePending(false));
     errorHandler(e);

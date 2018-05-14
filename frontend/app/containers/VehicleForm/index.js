@@ -20,7 +20,13 @@ import makeSelectVehicleForm from './selectors';
 import reducer from './reducer';
 import saga from './saga';
 import * as formRules from './form-rules';
-import { getManufacturers, createVehicle, getVehicle, updateVehicle, clearVehicleState } from './actions';
+import {
+  getManufacturers,
+  createVehicle,
+  getVehicle,
+  updateVehicle,
+  clearVehicleState,
+} from './actions';
 
 const FormItem = Form.Item;
 const Option = Select.Option;
@@ -37,7 +43,8 @@ const defaultValues = {
   id: '',
 };
 
-export class VehicleForm extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export class VehicleForm extends React.Component {
+  // eslint-disable-line react/prefer-stateless-function
 
   componentWillMount() {
     const { vehicleForm, match } = this.props;
@@ -76,7 +83,7 @@ export class VehicleForm extends React.Component { // eslint-disable-line react/
   }
 
   generateFieldDecorator = (type, config, component) =>
-    this.props.form.getFieldDecorator(type, config)(component)
+    this.props.form.getFieldDecorator(type, config)(component);
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -88,13 +95,13 @@ export class VehicleForm extends React.Component { // eslint-disable-line react/
         return message.error('Please fix the errors');
       }
 
-      return match.params.id ?
-        this.props.updateVehicle({ ...values, id: match.params.id }) :
-        this.props.createVehicle(values);
+      return match.params.id
+        ? this.props.updateVehicle({ ...values, id: match.params.id })
+        : this.props.createVehicle(values);
     });
-  }
+  };
 
-  vehicleTypeChoices = () => (
+  vehicleTypeChoices = () =>
     Object.keys(VEHICLE_TYPES).map((key) => {
       const { label, id } = VEHICLE_TYPES[key];
 
@@ -103,10 +110,9 @@ export class VehicleForm extends React.Component { // eslint-disable-line react/
           {label}
         </Option>
       );
-    })
-  );
+    });
 
-  vehicleStateChoices = () => (
+  vehicleStateChoices = () =>
     Object.keys(VEHICLE_STATES).map((key) => {
       const { label, id } = VEHICLE_STATES[key];
 
@@ -115,27 +121,23 @@ export class VehicleForm extends React.Component { // eslint-disable-line react/
           {label}
         </Option>
       );
-    })
-  );
+    });
 
-  manufacturers = () => (
+  manufacturers = () =>
     this.props.vehicleForm.data.manufacturers.map((m) => (
-      <Option key={m.name} value={String(m.name)}>{m.name}</Option>
-    ))
-  )
+      <Option key={m.name} value={String(m.name)}>
+        {m.name}
+      </Option>
+    ));
 
   isFormPending = () => {
-    const {
-      getManufacturersPending,
-      getVehiclePending,
-    } = this.props.vehicleForm.ui;
+    const { getManufacturersPending, getVehiclePending } = this.props.vehicleForm.ui;
 
     return getManufacturersPending || getVehiclePending;
-  }
+  };
 
-  renderFormTitle = () => (
-    window.location.pathname.includes('update') ? 'Update Vehicle' : 'New Vehicle'
-  )
+  renderFormTitle = () =>
+    window.location.pathname.includes('update') ? 'Update Vehicle' : 'New Vehicle';
 
   render() {
     const { createVehiclePending } = this.props.vehicleForm.ui;
@@ -145,7 +147,7 @@ export class VehicleForm extends React.Component { // eslint-disable-line react/
       <Row>
         <Row>
           <Col span="24">
-            <h1>{ this.renderFormTitle() }</h1>
+            <h1>{this.renderFormTitle()}</h1>
           </Col>
         </Row>
         <Row type="flex" justify="start">
@@ -153,61 +155,47 @@ export class VehicleForm extends React.Component { // eslint-disable-line react/
             <Spin spinning={this.isFormPending()}>
               <Form onSubmit={this.handleSubmit}>
                 <FormItem {...formItemLayout} label="Vehicle Type" hasFeedback>
-                  {
-                    this.generateFieldDecorator('vehicle_type', formRules.vehicleTypeRule, (
-                      <Select>
-                        {this.vehicleTypeChoices()}
-                      </Select>
-                    ))
-                  }
+                  {this.generateFieldDecorator(
+                    'vehicle_type',
+                    formRules.vehicleTypeRule,
+                    <Select>{this.vehicleTypeChoices()}</Select>
+                  )}
                 </FormItem>
                 <FormItem {...formItemLayout} label="Manufacturer" hasFeedback>
-                  {
-                    this.generateFieldDecorator('manufacturer', formRules.manufacturerRule, (
-                      <Select>
-                        { this.manufacturers() }
-                      </Select>
-                    ))
-                  }
+                  {this.generateFieldDecorator(
+                    'manufacturer',
+                    formRules.manufacturerRule,
+                    <Select>{this.manufacturers()}</Select>
+                  )}
                 </FormItem>
                 <FormItem {...formItemLayout} label="Model" hasFeedback>
-                  {
-                    this.generateFieldDecorator('model', formRules.modelRule, (
-                      <Input type="text" />
-                    ))
-                  }
+                  {this.generateFieldDecorator('model', formRules.modelRule, <Input type="text" />)}
                 </FormItem>
                 <FormItem {...formItemLayout} label="Serial Number" hasFeedback>
-                  {
-                    this.generateFieldDecorator('serial_number', formRules.serialNumberRule, (
-                      <Input type="text" />
-                    ))
-                  }
+                  {this.generateFieldDecorator(
+                    'serial_number',
+                    formRules.serialNumberRule,
+                    <Input type="text" />
+                  )}
                 </FormItem>
                 <FormItem {...formItemLayout} label="Empty Weight (kg)" hasFeedback>
-                  {
-                    this.generateFieldDecorator('empty_weight', formRules.emptyWeightRule, (
-                      <InputNumber
-                        style={controlWidth}
-                        min={0}
-                        max={100}
-                        step={0.1}
-                      />
-
-                    ))
-                  }
+                  {this.generateFieldDecorator(
+                    'empty_weight',
+                    formRules.emptyWeightRule,
+                    <InputNumber style={controlWidth} min={0} max={100} step={0.1} />
+                  )}
                 </FormItem>
                 <FormItem {...formItemLayout} label="State" hasFeedback>
-                  {
-                    this.generateFieldDecorator('state', formRules.stateRule, (
-                      <Select>
-                        {this.vehicleStateChoices()}
-                      </Select>
-                    ))
-                  }
+                  {this.generateFieldDecorator(
+                    'state',
+                    formRules.stateRule,
+                    <Select>{this.vehicleStateChoices()}</Select>
+                  )}
                 </FormItem>
                 <FormItem {...tailFormItemLayout}>
-                  <Button loading={createVehiclePending} type="primary" htmlType="submit">Save</Button>
+                  <Button loading={createVehiclePending} type="primary" htmlType="submit">
+                    Save
+                  </Button>
                 </FormItem>
               </Form>
             </Spin>
@@ -249,8 +237,4 @@ const withReducer = injectReducer({ key: 'vehicleForm', reducer });
 const withSaga = injectSaga({ key: 'vehicleForm', saga });
 const WrappedVehicleForm = Form.create()(VehicleForm);
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(WrappedVehicleForm);
+export default compose(withReducer, withSaga, withConnect)(WrappedVehicleForm);

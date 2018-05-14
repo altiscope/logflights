@@ -22,13 +22,14 @@ import saga from './saga';
 
 const FormItem = Form.Item;
 
-export class ChangePasswordForm extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export class ChangePasswordForm extends React.Component {
+  // eslint-disable-line react/prefer-stateless-function
 
   componentDidUpdate(prevProps) {
     const prevChangePasswordFulfilled = prevProps.changePasswordForm.ui.changePasswordFulfilled;
     const changePasswordFulfilled = this.props.changePasswordForm.ui.changePasswordFulfilled;
 
-    if ((prevChangePasswordFulfilled !== changePasswordFulfilled) && changePasswordFulfilled) {
+    if (prevChangePasswordFulfilled !== changePasswordFulfilled && changePasswordFulfilled) {
       this.props.form.setFieldsValue({
         new_password: '',
         confirm_new_password: '',
@@ -51,9 +52,10 @@ export class ChangePasswordForm extends React.Component { // eslint-disable-line
         old_password: values.old_password,
       });
     });
-  }
+  };
 
-  generateFieldDecorator = (type, config, component) => this.props.form.getFieldDecorator(type, config)(component)
+  generateFieldDecorator = (type, config, component) =>
+    this.props.form.getFieldDecorator(type, config)(component);
 
   checkPasswords = (rule, value, callback) => {
     const form = this.props.form;
@@ -63,7 +65,7 @@ export class ChangePasswordForm extends React.Component { // eslint-disable-line
     }
 
     return callback();
-  }
+  };
 
   render() {
     return (
@@ -72,28 +74,22 @@ export class ChangePasswordForm extends React.Component { // eslint-disable-line
         <FormWrapper maxWidth="660px">
           <Form onSubmit={this.handleSubmit}>
             <FormItem {...formItemLayout} label="Password" hasFeedback>
-              {
-                this.generateFieldDecorator('old_password', requiredRule, (
-                  <Input type="password" />
-                ))
-              }
+              {this.generateFieldDecorator('old_password', requiredRule, <Input type="password" />)}
             </FormItem>
             <FormItem {...formItemLayout} label="New Password" hasFeedback>
-              {
-                this.generateFieldDecorator('new_password', requiredRule, (
-                  <Input type="password" />
-                ))
-              }
+              {this.generateFieldDecorator('new_password', requiredRule, <Input type="password" />)}
             </FormItem>
             <FormItem {...formItemLayout} label="Confirm New Password" hasFeedback>
-              {
-                this.generateFieldDecorator('confirm_new_password', confirmPasswordRule(this.checkPasswords), (
-                  <Input type="password" />
-                ))
-              }
+              {this.generateFieldDecorator(
+                'confirm_new_password',
+                confirmPasswordRule(this.checkPasswords),
+                <Input type="password" />
+              )}
             </FormItem>
             <FormItem {...tailFormItemLayout}>
-              <Button type="primary" htmlType="submit">Change Password</Button>
+              <Button type="primary" htmlType="submit">
+                Change Password
+              </Button>
             </FormItem>
           </Form>
         </FormWrapper>
@@ -124,8 +120,4 @@ const withReducer = injectReducer({ key: 'changePasswordForm', reducer });
 const withSaga = injectSaga({ key: 'changePasswordForm', saga });
 const WrappedChangePasswordForm = Form.create()(ChangePasswordForm);
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(WrappedChangePasswordForm);
+export default compose(withReducer, withSaga, withConnect)(WrappedChangePasswordForm);

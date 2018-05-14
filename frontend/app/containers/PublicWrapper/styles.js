@@ -31,7 +31,7 @@ export const Logo = styled.h1`
   > a {
     color: #fff;
     text-decoration: none;
-  };
+  }
 `;
 
 export const ContentArea = styled(Content)`
@@ -54,23 +54,22 @@ export const FooterLink = styled(Link)`
   padding-right: 5px;
 `;
 
-
 export const Login = styled(Link)`
   margin: 15px;
   border-radius: 3px;
   color: #fff;
-  &:hover{
+  &:hover {
     transition: 1.5sec;
-  };
+  }
 `;
 
 export const SignUp = styled(Link)`
   margin: 15px;
   border-radius: 3px;
   color: #fff;
-  &:hover{
+  &:hover {
     transition: 1.5sec;
-  };
+  }
 `;
 
 export const HeaderNav = styled.div`

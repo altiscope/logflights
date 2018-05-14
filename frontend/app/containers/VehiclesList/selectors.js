@@ -10,11 +10,11 @@ const selectVehiclesListDomain = (state) => state.get('vehiclesList');
  * Other specific selectors
  */
 
-const makeSelectVehicles = () => createSelector(
-  selectVehiclesListDomain,
-  (state) => {
+const makeSelectVehicles = () =>
+  createSelector(selectVehiclesListDomain, (state) => {
     const filter = state.getIn(['ui', 'vehiclesFilter']);
-    const vehicles = state.getIn(['data', 'vehicles'])
+    const vehicles = state
+      .getIn(['data', 'vehicles'])
       .filter((v) => v.get('state') === filter)
       .map((v, i) =>
         v
@@ -24,21 +24,14 @@ const makeSelectVehicles = () => createSelector(
       );
 
     return vehicles.toJS();
-  }
-);
-
+  });
 
 /**
  * Default selector used by VehiclesList
  */
 
-const makeSelectVehiclesList = () => createSelector(
-  selectVehiclesListDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectVehiclesList = () =>
+  createSelector(selectVehiclesListDomain, (substate) => substate.toJS());
 
 export default makeSelectVehiclesList;
-export {
-  selectVehiclesListDomain,
-  makeSelectVehicles,
-};
+export { selectVehiclesListDomain, makeSelectVehicles };

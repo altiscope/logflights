@@ -29,7 +29,7 @@ export const PlannerHeader = styled(Header)`
   padding: 0 20px;
   background: #404040;
   .ant-dropdown-link {
-    line-height: initial!important;
+    line-height: initial !important;
     height: 64px;
   }
 `;
@@ -45,14 +45,14 @@ export const Breadcrumbs = styled(Breadcrumb)`
 export const ContentHolder = styled.div`
   min-height: 360px;
   background: #fff;
-  padding: 24px
+  padding: 24px;
 `;
 
 export const Trigger = styled(Icon)`
   font-size: 18px;
   line-height: 64px;
   cursor: pointer;
-  transition: color .3s;
+  transition: color 0.3s;
   z-index: 100;
   color: #ffffff;
   transition: color 0.3s ease-in-out;

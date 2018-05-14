@@ -5,10 +5,7 @@
  */
 
 import { fromJS } from 'immutable';
-import {
-  CREATE_NEW_PASSWORD_PENDING,
-  CREATE_NEW_PASSWORD_FULFILLED,
-} from './constants';
+import { CREATE_NEW_PASSWORD_PENDING, CREATE_NEW_PASSWORD_FULFILLED } from './constants';
 
 const initialState = fromJS({
   ui: {

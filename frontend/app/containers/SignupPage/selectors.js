@@ -9,17 +9,12 @@ const selectSignupPageDomain = (state) => state.get('signupPage');
  * Other specific selectors
  */
 
-
 /**
  * Default selector used by SignupPage
  */
 
-const makeSelectSignupPage = () => createSelector(
-  selectSignupPageDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectSignupPage = () =>
+  createSelector(selectSignupPageDomain, (substate) => substate.toJS());
 
 export default makeSelectSignupPage;
-export {
-  selectSignupPageDomain,
-};
+export { selectSignupPageDomain };

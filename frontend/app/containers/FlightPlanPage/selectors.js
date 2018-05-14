@@ -9,17 +9,12 @@ const selectFlightPlanPageDomain = (state) => state.get('flightPlanPage');
  * Other specific selectors
  */
 
-
 /**
  * Default selector used by FlightPlanPage
  */
 
-const makeSelectFlightPlanPage = () => createSelector(
-  selectFlightPlanPageDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectFlightPlanPage = () =>
+  createSelector(selectFlightPlanPageDomain, (substate) => substate.toJS());
 
 export default makeSelectFlightPlanPage;
-export {
-  selectFlightPlanPageDomain,
-};
+export { selectFlightPlanPageDomain };

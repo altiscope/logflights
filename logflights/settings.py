@@ -29,7 +29,7 @@ SECRET_KEY = 'hsq&m-4^c-7i)k(=(6k!ri+j00i$n=$n&l6!xh(9!+e*91&+2h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-LOCAL_DEV = False
+LOCAL_DEV = True
 LOGFLIGHTS_ENVIRONMENT = 'dev'
 LOGFLIGHTS_DOMAIN = socket.gethostname()
 DEPLOYMENT_ID = None
@@ -83,6 +83,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Add classes by name that support the assessment interface
+ASSESSMENTS = []
+
 ROOT_URLCONF = 'logflights.urls'
 
 STRINGS = 'logflights.strings'
@@ -97,8 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'django_settings_export.settings_export'
+                'django.contrib.messages.context_processors.messages'
             ],
         },
     },
@@ -122,7 +124,7 @@ SITE_NAME = 'log.flights'
 
 DEFAULT_FROM_EMAIL = 'noreply@log.flights'
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-SENDGRID_API_KEY = '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'
+SENDGRID_API_KEY = 'SET THIS KEY IN local_settings.py'
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 
 # Password validation
@@ -173,13 +175,6 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
-
-# set your own google analytics key
-GOOGLE_ANALYTICS_PROPERTY_ID = 'UA-XXXXXXXXX-1'
-
-SETTINGS_EXPORT = [
-    'GOOGLE_ANALYTICS_PROPERTY_ID'
-]
 
 #celery configurations
 CELERY_BROKER_URL = 'redis://localhost:6379/'
@@ -237,6 +232,8 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_CREDENTIALS = None
 GS_BUCKET_NAME = os.getenv("GS_BUCKET_NAME", "logflights_data_test")
 
+GOOGLE_MAPS_API_KEY = 'ADD KEY TO local_settings.py'
+
 GIT_REVISION = None
 try:
     repo = git.Repo(search_parent_directories=True)
@@ -246,7 +243,7 @@ except:
 
 # import local settings
 try:
-    from local_settings import *
+    from .local_settings import *
 except Exception as e:
     pass
 

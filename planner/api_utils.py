@@ -43,7 +43,7 @@ class CloneFlightPlan(generics.CreateAPIView):
 
 def get_user_jwt(request):
     user = get_user(request)
-    if user.is_authenticated():
+    if user.is_authenticated:
         return user
     try:
         user_jwt = JSONWebTokenAuthentication().authenticate(Request(request))
@@ -59,4 +59,3 @@ class AuthenticationMiddlewareJWT(object):
         assert hasattr(request, 'session'), "The Django authentication middleware requires session middleware to be installed. Edit your MIDDLEWARE_CLASSES setting to insert 'django.contrib.sessions.middleware.SessionMiddleware'."
 
         request.user = SimpleLazyObject(lambda: get_user_jwt(request))
-

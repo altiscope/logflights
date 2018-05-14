@@ -8,14 +8,13 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 class Filters extends PureComponent {
-
   state = {
     dateFilter: {
       date_start: '',
       date_end: '',
     },
     operatorId: 'placeholder',
-  }
+  };
 
   onChangeDateFilters = (date, dateString) => {
     this.setState({
@@ -24,11 +23,11 @@ class Filters extends PureComponent {
         date_end: dateString[1],
       },
     });
-  }
+  };
 
   onChangeOperatorFilter = (operatorId) => {
     this.setState({ operatorId });
-  }
+  };
 
   searchFlights = () => {
     let { operatorId } = this.state;
@@ -36,7 +35,7 @@ class Filters extends PureComponent {
     // clear the value if it is placeholder
     operatorId = operatorId === 'placeholder' ? '' : operatorId;
     this.props.getFlights({ ...this.state.dateFilter, operator_id: operatorId });
-  }
+  };
 
   resetFilters = () => {
     // reset state
@@ -57,15 +56,20 @@ class Filters extends PureComponent {
     }
 
     this.props.getFlights();
-  }
+  };
 
   renderOperators = () => {
-    const operators = [{ id: 'placeholder', organization: 'Select Operator' }, ...this.props.operators];
+    const operators = [
+      { id: 'placeholder', organization: 'Select Operator' },
+      ...this.props.operators,
+    ];
 
     return operators.map((o) => (
-      <Option key={String(o.id)} value={String(o.id)}>{o.organization}</Option>
+      <Option key={String(o.id)} value={String(o.id)}>
+        {o.organization}
+      </Option>
     ));
-  }
+  };
 
   render() {
     return (

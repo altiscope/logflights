@@ -1,15 +1,14 @@
-from __future__ import absolute_import
-
 import datetime
+import geopy
 import json
 import math
 import os
 import pytz
 import re
-from StringIO import StringIO
 import uuid
 import zipfile
 
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage, FileSystemStorage
 from django.db.models import Max, Min
@@ -20,7 +19,9 @@ from celery.utils.log import get_task_logger
 from csv import DictReader
 from lxml import etree
 
-from pymavlink import mavextra, mavutil, DFReader
+from pymavlink import mavextra, mavutil
+from .helpers import DFReader
+from .helpers.geo import Geo
 from pyulog.core import ULog
 
 from .models import Vehicle, FlightPlan, WaypointMetadata, Waypoint, TelemetryMetadata, Telemetry
@@ -33,6 +34,39 @@ def unique_filename(original_name):
     """ Generate a unique filename based on the original name
     """
     return '%s.%s' % (uuid.uuid4(), original_name.split('.')[-1])
+
+def generate_metadata(points):
+    if len(points) == 0:
+        return {
+            'distance': None,
+            'latitude': None,
+            'longitude': None,
+            'location': None,
+            'country': None,
+        }
+    distance = Geo.calc_distance(points)
+    loc = Geo.get_location(points[0])
+    return {
+        'distance': distance,
+        'latitude': points[0].latitude,
+        'longitude': points[0].longitude,
+        'location': loc['location'],
+        'country': loc['country'],
+    }
+
+def save_metadata(obj, meta):
+    obj.distance = meta['distance']
+    obj.start_latitude = meta['latitude']
+    obj.start_longitude = meta['longitude']
+    obj.location = meta['location']
+    obj.country = meta['country']
+    obj.save()
+
+def create_pts_and_metadata(obj, ModelType, points):
+    ModelType.objects.bulk_create(points)
+    meta = generate_metadata(points)
+    save_metadata(obj, meta)
+    return obj
 
 KML_NS = {"kml":"http://www.opengis.net/kml/2.2"}
 
@@ -53,15 +87,16 @@ def kml_parse(file_path):
                     kml = kml_inside.read()
                 break
     else:
-        with FileSystemStorage(location='/tmp').open(file_path, 'r') as kf:
+        with FileSystemStorage(location='/tmp').open(file_path, 'rb') as kf:
             kml = kf.read()
 
     try:
-        doc = etree.parse(StringIO(kml))
+        doc = etree.fromstring(kml)
     except etree.XMLSyntaxError as e:
         # fix unicode encoding and try again, a common problem in exported data
-        kml = re.sub(r"(<\?xml[^?]+?)utf-16", "\\1utf-8", kml, flags=re.IGNORECASE)
-        doc = etree.parse(StringIO(kml))
+        kml_str = kml.decode('utf-8')
+        kml = re.sub(r"(<\?xml[^?]+?)utf-16", "\\1utf-8", kml_str, flags=re.IGNORECASE).encode('utf-8')
+        doc = etree.fromstring(kml)
 
     results = []
     for pm in doc.xpath("//kml:Placemark", namespaces=KML_NS):
@@ -153,7 +188,7 @@ def process_qgc_text(wm, file_path):
             )
     logger.debug('Processed ' + str(len(waypoints)) + ' waypoints')
     if len(waypoints) > 0:
-        Waypoint.objects.bulk_create(waypoints)
+        create_pts_and_metadata(wm, Waypoint, waypoints)
     return len(waypoints)
 
 def process_qgc_json(wm, file_path):
@@ -204,7 +239,7 @@ def process_qgc_json(wm, file_path):
         # NOTE: if we want to extract vehicle type later:
         # vehicle_type = MAVLINK_VEHICLE_TYPES[ data['mission']['vehicleType'] ]
         wm.save()
-        Waypoint.objects.bulk_create(waypoints)
+        create_pts_and_metadata(wm, Waypoint, waypoints)
     return len(waypoints)
 
 def process_kml_waypoints(wm, file_path):
@@ -222,9 +257,25 @@ def process_kml_waypoints(wm, file_path):
         )
 
     points = kml_parse(file_path)
-    waypoints = map(create_wp, enumerate(points))
-    Waypoint.objects.bulk_create(waypoints)
+    waypoints = list(map(create_wp, enumerate(points)))
+    create_pts_and_metadata(wm, Waypoint, waypoints)
     return len(waypoints)
+
+def process_array_waypoints(wm, waypoints):
+    newWaypoints = []
+    for waypoint in waypoints:
+        newWaypoints.append(
+            Waypoint(
+                order= waypoint['order'],
+                latitude= waypoint['latitude'],
+                longitude= waypoint['longitude'],
+                altitude_relative= waypoint['altitude_relative'],
+                altitude= waypoint['altitude'],
+                waypoint_metadata= wm,
+            )
+        )
+    create_pts_and_metadata(wm, Waypoint, waypoints)
+    return len(newWaypoints)
 
 WAYPOINT_PROCESSORS = [
     (WaypointMetadata.PROCESSOR_QGC_TEXT, process_qgc_text),
@@ -233,7 +284,7 @@ WAYPOINT_PROCESSORS = [
 ]
 
 @shared_task
-def process_waypoints(wm_id):
+def process_waypoints(wm_id, waypoints=None):
     """ Shared task to process waypoints for a given waypoint metadata object (by ID)
         attempting to import using all available waypoint processors.
         Saves errors in the waypoint metadata object.
@@ -246,27 +297,41 @@ def process_waypoints(wm_id):
         logger.warning('Waypoint has already been processed for id: ' + str(wm_id))
         return
 
-    # Temporary local file for holding the waypoint data
-    unique_file = unique_filename(wm.path)
-    waypoints_file = default_storage.open(wm.path, 'r')
-    with FileSystemStorage(location='/tmp').open(unique_file, 'w+') as f:
-        f.write(waypoints_file.read())
+    def set_processed(wm, proc_name):
+        logger.debug('Waypoint: storing processor: ' + str(proc_name))
+        wm.processor = proc_name
+        wm.state = WaypointMetadata.STATE_PROCESSED
+        wm.save()
 
     processed = False
-    for (proc_name, proc) in WAYPOINT_PROCESSORS:
+
+    if isinstance(waypoints, list):
+        # process array, allow empty list to clear out waypoints
         try:
-            res = proc(wm, os.path.join('/tmp/', unique_file))
-            if res < 1:
-                continue
+            proc_name = WaypointMetadata.PROCESSOR_ARRAY
+            res = process_array_waypoints(wm, waypoints)
             processed = True
-            logger.debug('Waypoint: storing processor: ' + str(proc_name))
-            wm.processor = proc_name
-            wm.state = WaypointMetadata.STATE_PROCESSED
-            wm.save()
-            break
+            set_processed(wm, proc_name)
         except Exception as e:
-            logger.exception('%s raised %s' % (proc.__name__, str(e)))
-            continue
+            logger.exception('%s raised %s' % (proc_name, str(e)))
+    else:
+        # process files
+        # Temporary local file for holding the waypoint data
+        unique_file = unique_filename(wm.path)
+        waypoints_file = default_storage.open(wm.path, 'rb')
+        FileSystemStorage(location='/tmp').save(unique_file, waypoints_file)
+
+        for (proc_name, proc) in WAYPOINT_PROCESSORS:
+            try:
+                res = proc(wm, os.path.join('/tmp/', unique_file))
+                if res < 1:
+                    continue
+                processed = True
+                set_processed(wm, proc_name)
+                break
+            except Exception as e:
+                logger.exception('%s raised %s' % (proc.__name__, str(e)))
+                continue
 
     if not processed:
         logger.warning('No working processor found for waypoint id: %s.' % wm.id)
@@ -304,7 +369,7 @@ def update_or_append_telemetry(ts, telemetry):
         return False
     if telemetry.time in ts:
         existing = ts[telemetry.time]
-        for key, val in telemetry.__dict__.iteritems(): #update non-empty parameters
+        for key, val in telemetry.__dict__.items(): #update non-empty parameters
             if val:
                 setattr(existing, key, val)
         return True
@@ -375,8 +440,8 @@ def process_bin_file(fp, tm, file_path):
         if m.get_type() == 'CURR':
             last_voltage_reading = m.Volt * 1000 if m.Volt > 0 else None
             last_current_reading = m.Curr * 1000 if m.Curr > 0 else None
-    telemetry_list = telemetry_hash.values()
-    Telemetry.objects.bulk_create(telemetry_list)
+    telemetry_list = list(telemetry_hash.values())
+    create_pts_and_metadata(tm, Telemetry, telemetry_list)
     return len(telemetry_list)
 
 # Specifies the column headings that must be present in this type of CSV file
@@ -389,11 +454,11 @@ TELEMETRY_CSV_TYPES = {
 def process_csv_log_file(fp, tm, file_path):
     f = FileSystemStorage(location='/tmp').open(file_path, 'r')
     reader = DictReader(f, skipinitialspace=True)
-    first_row = reader.next()
+    first_row = next(reader)
     # Check if this file is a known CSV type
     csv_type = None
     for key in TELEMETRY_CSV_TYPES.keys():
-        if first_row.viewkeys() >= set(TELEMETRY_CSV_TYPES[key]):
+        if first_row.keys() >= set(TELEMETRY_CSV_TYPES[key]):
             csv_type = key
             logger.debug('Found CSV file type: %s' % (csv_type))
             break
@@ -410,7 +475,7 @@ def process_csv_log_file(fp, tm, file_path):
         time_start = datetime.datetime.strptime(first_row['datetime(utc)'], DATE_FORMAT)
         time_next = datetime.datetime.strptime(first_row['datetime(utc)'], DATE_FORMAT)
         while time_next == time_start:
-            row_next = reader.next()
+            row_next = next(reader)
             time_next = datetime.datetime.strptime(row_next['datetime(utc)'], DATE_FORMAT)
             ms_current = int(row_next['time(millisecond)'])
         ms_offset = (1000 - ms_current) % 1000
@@ -448,8 +513,8 @@ def process_csv_log_file(fp, tm, file_path):
                 last_time = datetime.datetime.strptime(m['datetime(utc)'], DATE_FORMAT)
                 last_offset = offset
 
-    telemetry_list = telemetry_hash.values()
-    Telemetry.objects.bulk_create(telemetry_list)
+    telemetry_list = list(telemetry_hash.values())
+    create_pts_and_metadata(tm, Telemetry, telemetry_list)
     return len(telemetry_list)
 
 def process_dd_log_file(fp, tm, file_path):
@@ -529,8 +594,8 @@ def process_dd_log_file(fp, tm, file_path):
                         current=latest_current if latest_current != 0 else None
                         )
                     )
-    telemetry_list = telemetry_hash.values()
-    Telemetry.objects.bulk_create(telemetry_list)
+    telemetry_list = list(telemetry_hash.values())
+    create_pts_and_metadata(tm, Telemetry, telemetry_list)
     return len(telemetry_list)
 
 def process_kml_telemetry(fp, tm, file_path):
@@ -553,8 +618,8 @@ def process_kml_telemetry(fp, tm, file_path):
     telemetry_hash = {}
     for i, pt in enumerate(points):
         update_or_append_telemetry(telemetry_hash, create_telemetry(i, pt))
-    telemetry_list = telemetry_hash.values()
-    Telemetry.objects.bulk_create(telemetry_list)
+    telemetry_list = list(telemetry_hash.values())
+    create_pts_and_metadata(tm, Telemetry, telemetry_list)
     return len(telemetry_list)
 
 def process_tlog_file(fp, tm, file_path):
@@ -629,7 +694,7 @@ def process_tlog_file(fp, tm, file_path):
                 tm.save()
             except Exception as e:
                 logger.warning('TLOG Unknown autopilot type: ' + str(m.autopilot))
-    Telemetry.objects.bulk_create(telemetry_list)
+    create_pts_and_metadata(tm, Telemetry, telemetry_list)
     return len(telemetry_list)
 
 
@@ -694,7 +759,7 @@ def process_ulog_file(fp, tm, file_path):
             continue
         ds = ulog.get_dataset(ds_name).data
         ds_keys = ds.keys()
-        for i in xrange(len(ds["timestamp"])):
+        for i in range(len(ds["timestamp"])):
             values = {key: ds[key][i] for key in ds_keys}
 
             telemetry = ULOG_DATASET_PROCESSORS[ds_name](values)
@@ -702,8 +767,8 @@ def process_ulog_file(fp, tm, file_path):
             telemetry.time = _make_ulog_time(first_timestamp, first_dt, int(ds["timestamp"][i]))
             update_or_append_telemetry(ts, telemetry)
 
-    tl = ts.values()
-    Telemetry.objects.bulk_create(tl)
+    tl = list(ts.values())
+    create_pts_and_metadata(tm, Telemetry, tl)
     return len(tl)
 
 
@@ -765,14 +830,12 @@ def process_telemetry(fp_id, tm_id):
 
     logger.debug("processing telemetry for fp: %s" % fp_id)
 
-
     # Temporary local file for holding the telemetry data
     unique_file = unique_filename(tm.path)
 
     # copy the data from the model into the local file
-    telemetry_file = default_storage.open(tm.path, 'r')
-    with FileSystemStorage(location='/tmp').open(unique_file, 'w+') as f:
-        f.write(telemetry_file.read())
+    telemetry_file = default_storage.open(tm.path, 'rb')
+    FileSystemStorage(location='/tmp').save(unique_file, telemetry_file)
 
     # try all processors on the file
     res = 0

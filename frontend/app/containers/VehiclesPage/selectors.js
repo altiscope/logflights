@@ -9,17 +9,12 @@ const selectVehiclesPageDomain = (state) => state.get('vehiclesPage');
  * Other specific selectors
  */
 
-
 /**
  * Default selector used by VehiclesPage
  */
 
-const makeSelectVehiclesPage = () => createSelector(
-  selectVehiclesPageDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectVehiclesPage = () =>
+  createSelector(selectVehiclesPageDomain, (substate) => substate.toJS());
 
 export default makeSelectVehiclesPage;
-export {
-  selectVehiclesPageDomain,
-};
+export { selectVehiclesPageDomain };

@@ -12,7 +12,7 @@ import Clock from './Clock';
 import { CardContent } from './styles';
 
 export default function FlightCard() {
-  const currentDate = (new Date()).toLocaleDateString('en-US', {
+  const currentDate = new Date().toLocaleDateString('en-US', {
     timeZone: 'UTC',
     weekday: 'short',
     year: 'numeric',

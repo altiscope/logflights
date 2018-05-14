@@ -12,6 +12,7 @@ import { changePasswordPending, changePasswordFulfilled } from './actions';
 
 export function* changePassword(action) {
   yield put(changePasswordPending(true));
+  // eslint-disable-next-line camelcase
   const { new_password, old_password } = action.payload;
 
   try {

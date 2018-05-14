@@ -51,7 +51,7 @@ function flightPlanDetailsReducer(state = initialState, action) {
         .setIn(['ui', 'getWaypointsPending'], false)
         .setIn(['ui', 'getWaypointsFulFilled'], true)
         .setIn(['data', 'waypoints'], fromJS(action.payload.waypoints));
-        // .setIn(['data', 'telemtery'], fromJS(action.payload.telemetry));
+    // .setIn(['data', 'telemtery'], fromJS(action.payload.telemetry));
 
     case GET_PLAN_FULFILLED:
       return state
@@ -71,16 +71,13 @@ function flightPlanDetailsReducer(state = initialState, action) {
       return state.setIn(['ui', 'uploadTelemetryPending'], action.payload.isPending);
 
     case UPLOAD_TELEMETRY_FULFILLED:
-      return state
-        .setIn(['ui', 'uploadTelemetryPending'], false);
+      return state.setIn(['ui', 'uploadTelemetryPending'], false);
 
     case SET_UPLOADED_TELEMETRY:
       return state.setIn(['ui', 'uploadedTelemetry'], action.payload.fileList);
 
     case DELETE_TELEMETRY_FULFILLED:
-      return state
-        .setIn(['ui', 'deleteTelemetryPending'], false)
-        .setIn(['data', 'telemetry'], {});
+      return state.setIn(['ui', 'deleteTelemetryPending'], false).setIn(['data', 'telemetry'], {});
 
     case TELEMETRY_PROCESSING:
       return state.setIn(['ui', 'telemetryProcessing'], action.payload.isProcessing);

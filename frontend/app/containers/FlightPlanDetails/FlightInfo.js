@@ -94,9 +94,7 @@ class FlightInfo extends PureComponent {
   renderTelemetryControls() {
     // @TODO refactor to only need relative path
     const { baseURL } = getDefaultAPIOptions();
-    const downloadLink = `${baseURL}/plans/${
-      this.props.flightPlan.id
-    }/download_telemetry/`;
+    const downloadLink = `${baseURL}/plans/${this.props.flightPlan.id}/download_telemetry/`;
     const hasTelemetry = this.props.telemetry.length > 0;
 
     const isOwner =
@@ -113,13 +111,9 @@ class FlightInfo extends PureComponent {
     }
 
     return (
-      <Upload
-        {...this.getUploadProps()}
-        fileList={this.props.uploadedTelemetry}
-      >
+      <Upload {...this.getUploadProps()} fileList={this.props.uploadedTelemetry}>
         <Button>
-          <Icon type="upload" />{' '}
-          {hasTelemetry ? 'Replace Telemetry' : 'Upload Telemetry'}
+          <Icon type="upload" /> {hasTelemetry ? 'Replace Telemetry' : 'Upload Telemetry'}
         </Button>
       </Upload>
     );
@@ -127,15 +121,16 @@ class FlightInfo extends PureComponent {
 
   render() {
     const { flightPlan } = this.props;
+    // eslint-disable-next-line camelcase
     const { planned_arrival_time, planned_departure_time } = flightPlan;
     const format = 'YYYY-MM-DD HH:mm:ss ';
 
-    const arrivalTime = moment(new Date(planned_arrival_time * 1000)).format(
-      format
-    ); // eslint-disable-line
+    // eslint-disable-next-line camelcase
+    const arrivalTime = moment(new Date(planned_arrival_time * 1000)).format(format);
     const departureTime = moment(
+      // eslint-disable-next-line camelcase
       new Date(planned_departure_time * 1000)
-    ).format(format); // eslint-disable-line
+    ).format(format);
 
     return (
       <Row>

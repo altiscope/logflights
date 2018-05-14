@@ -9,17 +9,12 @@ const selectVehicleFormDomain = (state) => state.get('vehicleForm');
  * Other specific selectors
  */
 
-
 /**
  * Default selector used by VehicleForm
  */
 
-const makeSelectVehicleForm = () => createSelector(
-  selectVehicleFormDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectVehicleForm = () =>
+  createSelector(selectVehicleFormDomain, (substate) => substate.toJS());
 
 export default makeSelectVehicleForm;
-export {
-  selectVehicleFormDomain,
-};
+export { selectVehicleFormDomain };

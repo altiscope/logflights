@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import cuid
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -39,6 +37,9 @@ def default_fp_slug():
 def default_tm_slug():
     return default_slug(TelemetryMetadata)
 
+def default_as_slug():
+    return default_slug(Assessment)
+
 def default_slug(model):
     slug = CUID_GENERATOR.slug()
     collision = model.objects.filter(pk=slug)
@@ -75,7 +76,13 @@ def document_path(instance, filename, timestamp = None, prefix = 'unknown'):
 
 # MODELS
 
-class Operator(models.Model):
+class BaseModel(models.Model):
+    def __str__(self):
+        return str(self.__dict__)
+    class Meta:
+        abstract=True
+
+class Operator(BaseModel):
     PREFIX = 'user'
     organization = models.CharField('organization',
         max_length=50,
@@ -89,19 +96,28 @@ class Operator(models.Model):
         blank=True)
     is_test = models.BooleanField('Test account', default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    ALTITUDE_UNIT_FEET = 'f'
+    ALTITUDE_UNIT_METERS = 'm'
+
+    ALTITUDE_UNITS = [
+        (ALTITUDE_UNIT_FEET,'Feet'),
+        (ALTITUDE_UNIT_METERS,'Meters')
+    ]
+    altitude_unit = models.CharField('altitude unit', default=ALTITUDE_UNIT_FEET, choices=ALTITUDE_UNITS, max_length=1)
 
     def __str__(self):
         return format(self.organization)
 
 
-class Manufacturer(models.Model):
+class Manufacturer(BaseModel):
+    DEFAULT_ID = 0
     name = models.CharField('manufacturer', max_length=50)
 
     def __str__(self):
         return format(self.name)
 
 
-class Vehicle(models.Model):
+class Vehicle(BaseModel):
     PREFIX = 'veh'
 
     STATE_ACTIVE = 'active'
@@ -129,21 +145,22 @@ class Vehicle(models.Model):
     serial_number = models.CharField('serial number', max_length= 100)
     vehicle_type = models.IntegerField('vehicle type', default=VEHICLE_TYPE_UNKNOWN, choices=VEHICLE_TYPE_CHOICES)
     empty_weight = models.FloatField('empty weight (kg)')
-    operator = models.ForeignKey('operator')
-    manufacturer = models.ForeignKey('manufacturer')
+    operator = models.ForeignKey('operator', on_delete=models.CASCADE)
+    manufacturer = models.ForeignKey('manufacturer', on_delete=models.SET_DEFAULT, default=Manufacturer.DEFAULT_ID)
 
     def __str__(self):
         return format(self.serial_number)
 
 
-class MissionType(models.Model):
+class MissionType(BaseModel):
+    DEFAULT_ID=1
     title = models.CharField('Title', max_length= 50)
 
     def __str__(self):
         return format(self.title)
 
 
-class FlightPlan(models.Model):
+class FlightPlan(BaseModel):
     PREFIX = 'fp'
     # constants for easier reference elsewhere in the code:
     STATE_PLANNED = 'planned'
@@ -166,8 +183,19 @@ class FlightPlan(models.Model):
     payload_weight = models.FloatField('payload weight (kg)')
     created_at = models.DateTimeField('created time', auto_now_add=True)
     vehicle = models.ForeignKey(Vehicle, null=True, on_delete=models.SET_NULL)
-    operator = models.ForeignKey(Operator)
-    mission_type = models.ForeignKey(MissionType)
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
+    mission_type = models.ForeignKey(MissionType, on_delete=models.SET_DEFAULT, default=MissionType.DEFAULT_ID)
+
+    # information about the pilot flying the flight plan
+    pilot_name = models.TextField('pilot name', blank=True, null=True)
+    pilot_phone_regex = RegexValidator(regex=r'^\+\d{10,15}$',
+        message='Phone number must be entered in the format: +9999999999. 10 to 15 digits allowed.')
+    pilot_phone = models.CharField('pilot mobile phone number',
+        max_length=16,
+        validators=[pilot_phone_regex],
+        blank=True, null=True)
+    pilot_latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6, blank=True, null=True)
+    pilot_longitude = models.DecimalField('longitude', max_digits=9, decimal_places=6, blank=True, null=True)
 
     def waypoint_filename(self):
         if self.waypoints:
@@ -178,7 +206,7 @@ class FlightPlan(models.Model):
         return None
 
 
-class WaypointMetadata(models.Model):
+class WaypointMetadata(BaseModel):
     STATE_UPLOADED = 'u'
     STATE_PROCESSED = 'p'
     STATE_ERROR = 'e'
@@ -194,16 +222,18 @@ class WaypointMetadata(models.Model):
     PROCESSOR_QGC_TEXT = 1
     PROCESSOR_QGC_JSON = 2
     PROCESSOR_KML = 3
+    PROCESSOR_ARRAY = 3
 
     PROCESSOR = [
         (PROCESSOR_NONE,'unknown'),
         (PROCESSOR_QGC_TEXT,'Mission Planner .waypoints'),
         (PROCESSOR_QGC_JSON,'QGroundControl .plan'),
         (PROCESSOR_KML,'Keyhole Markup Language .kml'),
+        (PROCESSOR_ARRAY,'Manual entered array data'),
     ]
 
     id = models.CharField('id', max_length=10, default=default_tm_slug, primary_key=True, unique=True)
-    operator = models.ForeignKey(Operator)
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE)
     flight_plan = models.ForeignKey(FlightPlan, on_delete=models.CASCADE, blank=True, null=True)
     state = FSMField('waypoint processing state', default=STATE_UPLOADED, choices=STATES)
     processor = models.IntegerField('waypoint parser', default=PROCESSOR_NONE, choices=PROCESSOR)
@@ -212,12 +242,17 @@ class WaypointMetadata(models.Model):
 
     v_cruise = models.FloatField('velocity in cruise (cm/s)', blank=True, null=True)
     v_hover = models.FloatField('velocity in hover (cm/s)', blank=True, null=True)
+    distance = models.FloatField('distance of flight (m)', blank=True, null=True)
+    location = models.TextField('location', blank=True, null=True)
+    country = models.CharField('location country code', max_length=2, blank=True, null=True)
+    start_latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6, null=True)
+    start_longitude = models.DecimalField('longitude', max_digits=9, decimal_places=6, null=True)
 
     def __str__(self):
         return format(self.id)
 
 
-class Waypoint(models.Model):
+class Waypoint(BaseModel):
     waypoint_metadata = models.ForeignKey(WaypointMetadata, on_delete=models.CASCADE, related_name='waypoints')
     order = models.IntegerField('sequential order', default=0)
     latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6)
@@ -232,7 +267,7 @@ class Waypoint(models.Model):
         unique_together = (('waypoint_metadata', 'order'),)
 
 
-class TelemetryMetadata(models.Model):
+class TelemetryMetadata(BaseModel):
     STATE_UPLOADED = 'u'
     STATE_PROCESSED = 'p'
     STATE_ERROR = 'e'
@@ -271,12 +306,18 @@ class TelemetryMetadata(models.Model):
 
     actual_departure_time = models.DateTimeField('actual departure time', blank=True, null=True)
     actual_arrival_time = models.DateTimeField('actual arrival time', blank=True, null=True)
+    distance = models.FloatField('distance of flight (m)', blank=True, null=True)
+    location = models.TextField('location', blank=True, null=True)
+    country = models.CharField('location country code', max_length=2, blank=True, null=True)
+    start_latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6, null=True)
+    start_longitude = models.DecimalField('longitude', max_digits=9, decimal_places=6, null=True)
+
     autopilot_name = models.TextField('autopilot name', blank=True, null=True)
     autopilot_version = models.TextField('autopilot version', blank=True, null=True)
     vehicle_type = models.IntegerField('vehicle type', default=Vehicle.VEHICLE_TYPE_UNKNOWN, choices=Vehicle.VEHICLE_TYPE_CHOICES)
 
 
-class Telemetry(models.Model):
+class Telemetry(BaseModel):
     telemetry_metadata = models.ForeignKey(TelemetryMetadata, on_delete=models.CASCADE, related_name='telemetries')
     time = models.DateTimeField('time of telemetry reading')
     latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6, null=True)
@@ -296,3 +337,48 @@ class Telemetry(models.Model):
             models.Index(fields=['telemetry_metadata', 'time']),
         ]
         unique_together = (('telemetry_metadata', 'time'),)
+
+class Assessment(BaseModel):
+    STATE_READY = 'ready'
+    STATE_CANCEL_REQUEST = 'cancelreq'
+    STATE_CANCELLED = 'cancelled'
+    STATE_PROCESSING = 'processing'
+    STATE_SUCCESS = 'success'
+    STATE_FAIL = 'fail'
+    STATE_SUBMITTING = 'submitting'
+    STATE_WAITING = 'waiting'
+    STATE_APPROVED = 'approved'
+    STATE_REJECTED = 'rejected'
+    STATE_RESCINDED = 'rescinded'
+    STATE_ERROR = 'error'
+
+    STATES = [
+        (STATE_READY, 'ready'),
+        (STATE_CANCEL_REQUEST, 'request cancellation'),
+        (STATE_CANCELLED, 'cancelled'),
+        (STATE_PROCESSING, 'processing'),
+        (STATE_SUCCESS, 'success'),
+        (STATE_FAIL, 'fail'),
+        (STATE_SUBMITTING, 'submitting'),
+        (STATE_WAITING, 'waiting'),
+        (STATE_APPROVED, 'approved'),
+        (STATE_REJECTED, 'rejected'),
+        (STATE_RESCINDED, 'rescinded'),
+        (STATE_ERROR, 'error'),
+    ]
+
+    id = models.CharField('id', max_length=10, default=default_as_slug, primary_key=True, unique=True)
+    state = FSMField('state', default=STATE_READY, choices=STATES)
+    name = models.TextField('short name')
+    klass = models.TextField('class name')
+
+    # inputs
+    flight_plan = models.ForeignKey(FlightPlan, on_delete=models.CASCADE)
+
+    # results
+    created_at = models.DateTimeField('created time', auto_now_add=True)
+    run_at = models.DateTimeField('run at', null=True)
+    submitted_at = models.DateTimeField('submitted at', null=True)
+    approved_at = models.DateTimeField('submitted at', null=True)
+    report = models.TextField('report path', null=True)
+    error = models.TextField('error message', null=True)

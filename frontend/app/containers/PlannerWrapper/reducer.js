@@ -5,9 +5,7 @@
  */
 
 import { fromJS } from 'immutable';
-import {
-  GET_CURRENT_USER_FULFILLED,
-} from './constants';
+import { GET_CURRENT_USER_FULFILLED } from './constants';
 
 const initialState = fromJS({
   getCurrentUserFulfilled: false,

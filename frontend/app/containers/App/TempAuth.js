@@ -29,13 +29,17 @@ class TempAuth extends PureComponent {
               placeholder="Enter Code"
               type="password"
               style={{ width: 300 }}
-              onChange={(event) => this.setState({
-                code: event.target.value,
-              })}
+              onChange={(event) =>
+                this.setState({
+                  code: event.target.value,
+                })
+              }
             />
           </div>
           <div>
-            <Button type="primary" htmlType="submit" onClick={this.onSubmit}>Submit</Button>
+            <Button type="primary" htmlType="submit" onClick={this.onSubmit}>
+              Submit
+            </Button>
           </div>
         </Form>
       </div>

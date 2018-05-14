@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf import settings
@@ -24,20 +24,20 @@ from rest_framework_swagger.views import get_swagger_view
 
 urlpatterns = [
     # App routes
-    url(r'^accounts/', include('allauth.urls')),
+    path('accounts/', include('allauth.urls')),
 
-    url(r'^auth/api-token-auth/', obtain_jwt_token),
+    path('auth/api-token-auth/', obtain_jwt_token),
 
     # api docs
-    url(r'^_/docs/', get_swagger_view(title='log.flights API')),
+    re_path(r'_/docs/?', get_swagger_view(title='log.flights API')),
 
     # Administrative routes to be protected by http proxy / load balancer
-    url(r'^_/admin/', admin.site.urls),
-    url(r'^_/health_check/', views.HealthCheckView.as_view(), name='health_check'),
-    url(r'^api/internal/', include('planner.api_urls', namespace='planner_api')),
-    url(r'^$', TemplateView.as_view(template_name='react/index.html'), name="welcome"),
+    re_path(r'_/admin/?', admin.site.urls),
+    re_path(r'_/health_check/?', views.HealthCheckView.as_view(), name='health_check'),
+    path('api/internal/', include('planner.api_urls', namespace='planner_api')),
+    path('', TemplateView.as_view(template_name='react/index.html'), name="welcome"),
     # match all other routes
-    url(r'^(?:.*)/?$', TemplateView.as_view(template_name='react/index.html'), name="welcome"),
+    re_path(r'^(?:.*)/?$', TemplateView.as_view(template_name='react/index.html'), name="welcome"),
 
     # old ui
 

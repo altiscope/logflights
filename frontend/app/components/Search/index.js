@@ -7,7 +7,7 @@ class Search extends Component {
   static defaultProps = {
     placeholder: 'Search...',
     width: 250,
-  }
+  };
 
   render() {
     const { placeholder, width } = this.props;
@@ -35,4 +35,3 @@ Search.propTypes = {
 };
 
 export default Search;
-

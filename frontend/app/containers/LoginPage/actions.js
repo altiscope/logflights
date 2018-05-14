@@ -4,12 +4,7 @@
  *
  */
 
-import {
-  LOGIN_REQUEST,
-  LOGIN_PENDING,
-  LOGIN_FULFILLED,
-  LOGIN_FAILED,
-} from './constants';
+import { LOGIN_REQUEST, LOGIN_PENDING, LOGIN_FULFILLED, LOGIN_FAILED } from './constants';
 
 export function loginRequest(username, password) {
   return {

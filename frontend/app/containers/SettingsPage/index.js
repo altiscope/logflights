@@ -24,24 +24,18 @@ import saga from './saga';
 const USER_PROFILE_PATH = (url) => `${url}/profile`;
 const CHANGE_PASSWORD_PATH = (url) => `${url}/change-password`;
 
-export class SettingsPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    const { match } = this.props;
-
-    return (
-      <div>
-        <Helmet>
-          <title>SettingsPage</title>
-          <meta name="description" content="Description of SettingsPage" />
-        </Helmet>
-        <Switch>
-          <Route path={USER_PROFILE_PATH(match.url)} component={UserProfileForm} />
-          <Route path={CHANGE_PASSWORD_PATH(match.url)} component={ChangePasswordForm} />
-        </Switch>
-      </div>
-    );
-  }
-}
+export const SettingsPage = ({ match }) => (
+  <div>
+    <Helmet>
+      <title>SettingsPage</title>
+      <meta name="description" content="Description of SettingsPage" />
+    </Helmet>
+    <Switch>
+      <Route path={USER_PROFILE_PATH(match.url)} component={UserProfileForm} />
+      <Route path={CHANGE_PASSWORD_PATH(match.url)} component={ChangePasswordForm} />
+    </Switch>
+  </div>
+);
 
 SettingsPage.propTypes = {
   match: PropTypes.object,
@@ -62,8 +56,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'settingsPage', reducer });
 const withSaga = injectSaga({ key: 'settingsPage', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(SettingsPage);
+export default compose(withReducer, withSaga, withConnect)(SettingsPage);

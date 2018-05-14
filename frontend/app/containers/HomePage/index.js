@@ -16,15 +16,7 @@ import makeSelectHomePage from './selectors';
 import reducer from './reducer';
 import saga from './saga';
 
-export class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    return (
-      <div>
-        log.flights
-      </div>
-    );
-  }
-}
+export const HomePage = () => <div>log.flights</div>;
 
 HomePage.propTypes = {
   dispatch: PropTypes.func.isRequired,
@@ -45,8 +37,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'homePage', reducer });
 const withSaga = injectSaga({ key: 'homePage', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(HomePage);
+export default compose(withReducer, withSaga, withConnect)(HomePage);

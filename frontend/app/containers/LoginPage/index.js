@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { compose, bindActionCreators } from 'redux';
-import { Form, Icon, Input, Button, Checkbox, message } from 'antd';
+import { Form, Icon, Input, Button, message } from 'antd';
 import { Link } from 'react-router-dom';
 import injectSaga from 'utils/injectSaga';
 import injectReducer from 'utils/injectReducer';
@@ -20,7 +20,8 @@ import { loginRequest } from './actions';
 
 const FormItem = Form.Item;
 
-export class LoginPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export class LoginPage extends React.Component {
+  // eslint-disable-line react/prefer-stateless-function
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -32,35 +33,59 @@ export class LoginPage extends React.Component { // eslint-disable-line react/pr
 
       return this.props.loginRequest(values.userName, values.password);
     });
-  }
+  };
 
   generateFieldDecorator = (type, config, component) =>
-    this.props.form.getFieldDecorator(type, config)(component)
+    this.props.form.getFieldDecorator(type, config)(component);
 
   render() {
     const loginPending = this.props.loginPage.loginPending;
 
     return (
-      <Form onSubmit={this.handleSubmit} style={{ width: '100%', maxWidth: '300px', margin: 'auto' }} className="login-form">
+      <Form
+        onSubmit={this.handleSubmit}
+        style={{ width: '100%', maxWidth: '300px', margin: 'auto' }}
+        className="login-form"
+      >
         <FormItem>
-          {
-            this.generateFieldDecorator('userName', {
+          {this.generateFieldDecorator(
+            'userName',
+            {
               rules: [{ required: true, message: 'Please input your username!' }],
-            }, <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="Email" />)
-          }
+            },
+            <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="Email" />
+          )}
         </FormItem>
         <FormItem>
-          {
-            this.generateFieldDecorator('password', {
+          {this.generateFieldDecorator(
+            'password',
+            {
               rules: [{ required: true, message: 'Please input your Password!' }],
-            }, <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="Password" />)
-          }
+            },
+            <Input
+              prefix={<Icon type="lock" style={{ fontSize: 13 }} />}
+              type="password"
+              placeholder="Password"
+            />
+          )}
         </FormItem>
         <FormItem>
-          <Link className="login-form-forgot" style={{ float: 'right' }} to="/accounts/reset-password">Forgot password</Link>
+          <Link
+            className="login-form-forgot"
+            style={{ float: 'right' }}
+            to="/accounts/reset-password"
+          >
+            Forgot password
+          </Link>
         </FormItem>
         <FormItem>
-          <Button loading={loginPending} type="primary" style={{ width: '100%' }} htmlType="submit" className="login-form-button">
+          <Button
+            loading={loginPending}
+            type="primary"
+            style={{ width: '100%' }}
+            htmlType="submit"
+            className="login-form-button"
+          >
             Log in
           </Button>
           Or <Link to="/accounts/signup">register now!</Link>
@@ -91,8 +116,4 @@ const withReducer = injectReducer({ key: 'loginPage', reducer });
 const withSaga = injectSaga({ key: 'loginPage', saga });
 const WrappedLoginPage = Form.create()(LoginPage);
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(WrappedLoginPage);
+export default compose(withReducer, withSaga, withConnect)(WrappedLoginPage);

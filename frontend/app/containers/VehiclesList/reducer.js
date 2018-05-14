@@ -5,11 +5,7 @@
  */
 
 import { fromJS } from 'immutable';
-import {
-  GET_VEHICLES_PENDING,
-  GET_VEHICLES_FULFILLED,
-  SET_VEHICLES_FILTER,
-} from './constants';
+import { GET_VEHICLES_PENDING, GET_VEHICLES_FULFILLED, SET_VEHICLES_FILTER } from './constants';
 
 const initialState = fromJS({
   ui: {

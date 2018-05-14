@@ -25,12 +25,9 @@ import {
   FooterLink,
 } from './styles';
 
-const FlightPlanDetailsComponent = (props) => (
-  <FlightPlanDetails mode="public" {...props} />
-);
+const FlightPlanDetailsComponent = (props) => <FlightPlanDetails mode="public" {...props} />;
 
 class PublicWrapper extends PureComponent {
-
   render() {
     const { match } = this.props;
     const breadcrumbStyle = { margin: '16px 0' };
@@ -40,9 +37,7 @@ class PublicWrapper extends PureComponent {
       <PublicLayout>
         <PublicHeader>
           <Logo>
-            <Link to="/planner">
-              log.flights
-            </Link>
+            <Link to="/planner">log.flights</Link>
           </Logo>
           <HeaderNav>
             <Login to="/accounts/login">Login</Login>
@@ -51,8 +46,7 @@ class PublicWrapper extends PureComponent {
           </HeaderNav>
         </PublicHeader>
         <ContentArea>
-          <Breadcrumb style={breadcrumbStyle}>
-          </Breadcrumb>
+          <Breadcrumb style={breadcrumbStyle} />
           <MainContent>
             <Switch>
               <Route exact path={match.url} component={PlannerIndex} />
@@ -61,18 +55,14 @@ class PublicWrapper extends PureComponent {
           </MainContent>
         </ContentArea>
         <Footer style={{ textAlign: 'center' }}>
-            log.flights from Altiscope © A³ by Airbus
-            <div>
-              <FooterLink to="/terms-of-service">
-                Terms of Service
-              </FooterLink>
-              <FooterLink to="/privacy-policy">
-                Privacy Policy
-              </FooterLink>
-              <FooterLink to="https://github.com/altiscope/logflights" target="_blank">
-                GitHub
-              </FooterLink>
-            </div>
+          log.flights from Altiscope © A³ by Airbus
+          <div>
+            <FooterLink to="/terms-of-service">Terms of Service</FooterLink>
+            <FooterLink to="/privacy-policy">Privacy Policy</FooterLink>
+            <FooterLink to="https://github.com/altiscope/logflights" target="_blank">
+              GitHub
+            </FooterLink>
+          </div>
         </Footer>
       </PublicLayout>
     );

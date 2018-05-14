@@ -54,4 +54,3 @@ export function updateUserProfileFulfilled(userProfile) {
     payload: { userProfile },
   };
 }
-

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from datetime import datetime
 from datetime import time
 import os
@@ -9,7 +7,7 @@ from pytz import UTC
 from django.template import loader
 from django.core import serializers
 from django.core.files.storage import default_storage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -21,7 +19,7 @@ from django.utils import dateparse
 from django.views.decorators.csrf import csrf_exempt
 
 from health_check.views import MainView
-from tasks import process_waypoints, process_telemetry
+from .tasks import process_waypoints, process_telemetry
 
 from .models import Operator, Manufacturer, Vehicle, MissionType, FlightPlan, \
     Waypoint, WaypointMetadata, TelemetryMetadata, \

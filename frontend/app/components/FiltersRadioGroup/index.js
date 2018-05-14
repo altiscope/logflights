@@ -13,4 +13,3 @@ export default styled(RadioGroup)`
   float: right;
   padding: 12px;
 `;
-

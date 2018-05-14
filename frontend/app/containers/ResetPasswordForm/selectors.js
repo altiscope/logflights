@@ -9,17 +9,12 @@ const selectResetPasswordFormDomain = (state) => state.get('resetPasswordForm');
  * Other specific selectors
  */
 
-
 /**
  * Default selector used by ResetPasswordForm
  */
 
-const makeSelectResetPasswordForm = () => createSelector(
-  selectResetPasswordFormDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectResetPasswordForm = () =>
+  createSelector(selectResetPasswordFormDomain, (substate) => substate.toJS());
 
 export default makeSelectResetPasswordForm;
-export {
-  selectResetPasswordFormDomain,
-};
+export { selectResetPasswordFormDomain };

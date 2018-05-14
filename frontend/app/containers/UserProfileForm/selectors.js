@@ -13,12 +13,8 @@ const selectUserProfileFormDomain = (state) => state.get('userProfileForm');
  * Default selector used by UserProfileForm
  */
 
-const makeSelectUserProfileForm = () => createSelector(
-  selectUserProfileFormDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectUserProfileForm = () =>
+  createSelector(selectUserProfileFormDomain, (substate) => substate.toJS());
 
 export default makeSelectUserProfileForm;
-export {
-  selectUserProfileFormDomain,
-};
+export { selectUserProfileFormDomain };

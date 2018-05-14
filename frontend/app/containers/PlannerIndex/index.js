@@ -21,8 +21,7 @@ import { gridColumns } from './constants';
 import { getPlannedFlights, getOperators } from './actions';
 import Filters from './Filters';
 
-const DETAILS_PLAN_PATH = (matchURL, recordId) =>
-  `${matchURL}/flight-plans/${recordId}`;
+const DETAILS_PLAN_PATH = (matchURL, recordId) => `${matchURL}/flight-plans/${recordId}`;
 
 export class PlannerIndex extends React.Component {
   // eslint-disable-line react/prefer-stateless-function

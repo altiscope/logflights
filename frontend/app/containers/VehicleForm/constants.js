@@ -31,4 +31,3 @@ export const VEHICLE_STATES = {
   ACTIVE: { id: 'active', label: 'Active' },
   INACTIVE: { id: 'inactive', label: 'Inactive' },
 };
-

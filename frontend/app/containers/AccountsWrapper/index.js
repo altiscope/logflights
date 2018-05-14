@@ -38,34 +38,29 @@ const SIGNUP_PATH = (matchUrl) => `${matchUrl}/signup`;
 const RESET_PASSWORD_PATH = (matchUrl) => `${matchUrl}/reset-password`;
 const CREATE_NEW_PASSWORD_PATH = (matchUrl) => `${matchUrl}/reset-password/new/:token`;
 
-export class AccountsWrapper extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    const { match } = this.props;
-
-    return (
-      <div>
-        <Helmet
-          titleTemplate="%s - log.flights"
-          defaultTitle="Accounts"
-        />
-        <Row>
-          <Col span="12">
-            <AccountsRow type="flex" align="center" justify="center">
-              <Switch>
-                <Route path={LOGIN_PATH(match.url)} component={LoginPage} />
-                <Route path={SIGNUP_PATH(match.url)} component={SignupPage} />
-                <Route exact path={RESET_PASSWORD_PATH(match.url)} component={ResetPasswordForm} />
-                <Route exact path={CREATE_NEW_PASSWORD_PATH(match.url)} component={CreateNewPasswordForm} />
-                <Route path="" render={() => (<Redirect push to="/not-found" />)} />
-              </Switch>
-            </AccountsRow>
-          </Col>
-          <AccountsBgCol span="12"></AccountsBgCol>
-        </Row>
-      </div>
-    );
-  }
-}
+export const AccountsWrapper = ({ match }) => (
+  <div>
+    <Helmet titleTemplate="%s - log.flights" defaultTitle="Accounts" />
+    <Row>
+      <Col span="12">
+        <AccountsRow type="flex" align="center" justify="center">
+          <Switch>
+            <Route path={LOGIN_PATH(match.url)} component={LoginPage} />
+            <Route path={SIGNUP_PATH(match.url)} component={SignupPage} />
+            <Route exact path={RESET_PASSWORD_PATH(match.url)} component={ResetPasswordForm} />
+            <Route
+              exact
+              path={CREATE_NEW_PASSWORD_PATH(match.url)}
+              component={CreateNewPasswordForm}
+            />
+            <Route path="" render={() => <Redirect push to="/not-found" />} />
+          </Switch>
+        </AccountsRow>
+      </Col>
+      <AccountsBgCol span="12" />
+    </Row>
+  </div>
+);
 
 AccountsWrapper.propTypes = {
   match: PropTypes.object,
@@ -79,6 +74,4 @@ function mapDispatchToProps(dispatch) {
 
 const withConnect = connect(null, mapDispatchToProps);
 
-export default compose(
-  withConnect,
-)(AccountsWrapper);
+export default compose(withConnect)(AccountsWrapper);

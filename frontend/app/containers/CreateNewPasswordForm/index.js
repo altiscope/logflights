@@ -22,10 +22,11 @@ import { createNewPassword } from './actions';
 
 const FormItem = Form.Item;
 
-export class CreateNewPasswordForm extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export class CreateNewPasswordForm extends React.Component {
+  // eslint-disable-line react/prefer-stateless-function
 
   generateFieldDecorator = (type, config, component) =>
-    this.props.form.getFieldDecorator(type, config)(component)
+    this.props.form.getFieldDecorator(type, config)(component);
 
   validatePasswordConfirmation = (rules, value, callback) => {
     const form = this.props.form;
@@ -36,7 +37,7 @@ export class CreateNewPasswordForm extends React.Component { // eslint-disable-l
     }
 
     return callback();
-  }
+  };
 
   createNewPassword = (e) => {
     e.preventDefault();
@@ -52,44 +53,47 @@ export class CreateNewPasswordForm extends React.Component { // eslint-disable-l
         ...values,
       });
     });
-  }
+  };
 
   renderForm = () => (
-    <Form onSubmit={this.createNewPassword} style={{ width: '100%', maxWidth: '300px', margin: 'auto' }} className="reset-password-form">
-      <FormItem
-        label="New Password"
-        hasFeedback
-      >
-        {
-            this.generateFieldDecorator('new_password1', {
-              rules: [{ required: true, message: 'please enter your new password' }],
-            }, (
-              <Input type="password" />
-            ))
-          }
+    <Form
+      onSubmit={this.createNewPassword}
+      style={{ width: '100%', maxWidth: '300px', margin: 'auto' }}
+      className="reset-password-form"
+    >
+      <FormItem label="New Password" hasFeedback>
+        {this.generateFieldDecorator(
+          'new_password1',
+          {
+            rules: [{ required: true, message: 'please enter your new password' }],
+          },
+          <Input type="password" />
+        )}
       </FormItem>
-      <FormItem
-        label="Confirm New Password"
-        hasFeedback
-      >
-        {
-            this.generateFieldDecorator('new_password2', {
-              rules: [{
+      <FormItem label="Confirm New Password" hasFeedback>
+        {this.generateFieldDecorator(
+          'new_password2',
+          {
+            rules: [
+              {
                 required: true,
                 message: 'please re-enter your new password',
-              }, {
+              },
+              {
                 validator: this.validatePasswordConfirmation,
-              }],
-            }, (
-              <Input type="password" />
-            ))
-          }
+              },
+            ],
+          },
+          <Input type="password" />
+        )}
       </FormItem>
       <FormItem>
-        <ResetButton type="primary" htmlType="submit">Submit</ResetButton>
+        <ResetButton type="primary" htmlType="submit">
+          Submit
+        </ResetButton>
       </FormItem>
     </Form>
-    )
+  );
 
   renderSuccessMessage = () => {
     const loginLink = <Link to="/accounts/login">here</Link>;
@@ -103,7 +107,7 @@ export class CreateNewPasswordForm extends React.Component { // eslint-disable-l
         </Row>
       </div>
     );
-  }
+  };
 
   render() {
     const { createNewPasswordFulfilled } = this.props.createNewPasswordForm.ui;
@@ -135,8 +139,4 @@ const withReducer = injectReducer({ key: 'createNewPasswordForm', reducer });
 const withSaga = injectSaga({ key: 'createNewPasswordForm', saga });
 const WrappedCreateNewPasswordForm = Form.create()(CreateNewPasswordForm);
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(WrappedCreateNewPasswordForm);
+export default compose(withReducer, withSaga, withConnect)(WrappedCreateNewPasswordForm);

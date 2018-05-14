@@ -14,7 +14,6 @@ export const TermsContainer = styled.div`
   border: 1px solid #eee;
 `;
 
-
 /*
  *
  * Antd Prop Styles

@@ -137,6 +137,7 @@ class Map extends PureComponent {
 
   displayPathElevation = (path, elevator, map) => {
     // Display a polyline of the elevation path.
+    // eslint-disable-next-line no-new
     new google.maps.Polyline({
       // eslint-disable-line
       path,

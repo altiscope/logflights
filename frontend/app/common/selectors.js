@@ -10,11 +10,7 @@ import { createSelector } from 'reselect';
 
 const selectGlobal = (state) => state.get('global');
 
-const makeSelectCurrentUser = () => createSelector(
-  selectGlobal,
-  (globalState) => globalState.get('currentUser').toJS()
-);
+const makeSelectCurrentUser = () =>
+  createSelector(selectGlobal, (globalState) => globalState.get('currentUser').toJS());
 
-export {
-  makeSelectCurrentUser,
-};
+export { makeSelectCurrentUser };

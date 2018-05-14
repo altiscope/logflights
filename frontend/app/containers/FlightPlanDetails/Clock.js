@@ -7,20 +7,19 @@
 import React, { PureComponent } from 'react';
 
 class Clock extends PureComponent {
-
   state = {
-    time: (new Date()).toLocaleTimeString('en-US', {
+    time: new Date().toLocaleTimeString('en-US', {
       timeZone: 'GMT',
       timeZoneName: 'short',
       hour12: false,
     }),
-  }
+  };
 
   componentDidMount() {
     // for initial rendering
     this.interval = setInterval(() => {
       this.setState({
-        time: (new Date()).toLocaleTimeString('en-US', {
+        time: new Date().toLocaleTimeString('en-US', {
           timeZone: 'GMT',
           timeZoneName: 'short',
           hour12: false,
@@ -34,9 +33,7 @@ class Clock extends PureComponent {
   }
 
   render() {
-    return (
-      <h1>{this.state.time}</h1>
-    );
+    return <h1>{this.state.time}</h1>;
   }
 }
 

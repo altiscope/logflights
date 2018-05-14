@@ -5,10 +5,7 @@
  */
 
 import { fromJS } from 'immutable';
-import {
-  LOGIN_FULFILLED,
-  LOGIN_PENDING,
-} from './constants';
+import { LOGIN_FULFILLED, LOGIN_PENDING } from './constants';
 
 const initialState = fromJS({
   loginPending: false,
@@ -21,9 +18,7 @@ function loginPageReducer(state = initialState, action) {
       return state.set('loginPending', action.payload.isPending);
 
     case LOGIN_FULFILLED:
-      return state
-        .set('loginPending', false)
-        .set('errorMessage', '');
+      return state.set('loginPending', false).set('errorMessage', '');
 
     default:
       return state;

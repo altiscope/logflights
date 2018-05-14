@@ -8,18 +8,19 @@ import styled from 'styled-components';
 
 export const FormWrapper = styled.div`
   padding: 34px 20px 24px;
-  ${(props) => (props.maxWidth && `
+  ${(props) =>
+    props.maxWidth &&
+    `
     max-width: ${props.maxWidth};
     width: 100%;
-  `)}
-  ${(props) => (props.center && `
+  `} ${(props) =>
+  props.center &&
+    `
     margin: auto;
-  `)}
+  `};
 `;
 
-export const AccountsFormHeader = styled.h1`
-
-`;
+export const AccountsFormHeader = styled.h1``;
 
 /*
  *
@@ -50,4 +51,3 @@ export const tailFormItemLayout = {
     },
   },
 };
-

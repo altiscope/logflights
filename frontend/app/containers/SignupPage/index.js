@@ -23,6 +23,7 @@ import { signup } from './actions';
 import { TermsContainer } from './styles';
 
 const FormItem = Form.Item;
+
 export class SignupPage extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
@@ -64,18 +65,10 @@ export class SignupPage extends React.Component {
           )}
         </FormItem>
         <FormItem {...formItemLayout} label="Last Name" hasFeedback>
-          {this.generateFieldDecorator(
-            'last_name',
-            formRules.lastNameRule,
-            <Input type="text" />
-          )}
+          {this.generateFieldDecorator('last_name', formRules.lastNameRule, <Input type="text" />)}
         </FormItem>
         <FormItem {...formItemLayout} label="Email" hasFeedback>
-          {this.generateFieldDecorator(
-            'email',
-            formRules.emailRule,
-            <Input type="text" />
-          )}
+          {this.generateFieldDecorator('email', formRules.emailRule, <Input type="text" />)}
         </FormItem>
         <FormItem {...formItemLayout} label="Mobile" hasFeedback>
           {this.generateFieldDecorator(
@@ -110,10 +103,9 @@ export class SignupPage extends React.Component {
         </FormItem>
         <div>
           <strong>
-            Please indicate your agreement with these terms of service by
-            clicking “Agree and Sign Up” below. If you do not agree with all of
-            these terms of service, please do not sign up for an account and do
-            not click below.
+            Please indicate your agreement with these terms of service by clicking “Agree and Sign
+            Up” below. If you do not agree with all of these terms of service, please do not sign up
+            for an account and do not click below.
           </strong>
         </div>
         <FormItem {...tailFormItemLayout}>

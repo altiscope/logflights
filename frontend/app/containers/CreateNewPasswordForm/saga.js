@@ -13,6 +13,7 @@ import { createNewPasswordPending, createNewPasswordFulfilled } from './actions'
 export function* createNewPassword(action) {
   try {
     yield put(createNewPasswordPending(true));
+    // eslint-disable-next-line camelcase
     const { token, new_password1, new_password2 } = action.payload;
 
     yield call(getAnonymousClient().post, `/password/reset/${token}/`, {

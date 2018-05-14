@@ -22,25 +22,23 @@ import Filters from './Filters';
 
 const updateVehiclePath = (matchUrl, id) => `${matchUrl}/${id}/update`;
 
-export class VehiclesList extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export class VehiclesList extends React.Component {
+  // eslint-disable-line react/prefer-stateless-function
 
   componentWillMount() {
     this.props.getVehicles();
   }
 
-  getColumns = () => (
+  getColumns = () =>
     vehicleGridColumns.concat({
       title: 'Actions',
       key: 'x',
       render: (text, record) => (
         <Link to={updateVehiclePath(this.props.match.url, record.id)}>Update</Link>
       ),
-    })
-  )
+    });
 
-  handleChange = (pagination, filters, sorter) => (
-    { pagination, filters, sorter }
-  )
+  handleChange = (pagination, filters, sorter) => ({ pagination, filters, sorter });
 
   render() {
     const { getVehiclesPending } = this.props.vehiclesList.ui;
@@ -63,7 +61,13 @@ export class VehiclesList extends React.Component { // eslint-disable-line react
             dataSource={this.props.vehicles}
             onChange={this.handleChange}
             locale={locale}
-            pagination={{ total: this.props.vehicles.length, size: 'small', showSizeChanger: true, showQuickJumper: true, defaultPageSize: 20 }}
+            pagination={{
+              total: this.props.vehicles.length,
+              size: 'small',
+              showSizeChanger: true,
+              showQuickJumper: true,
+              defaultPageSize: 20,
+            }}
           />
         </Col>
       </Row>
@@ -96,8 +100,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'vehiclesList', reducer });
 const withSaga = injectSaga({ key: 'vehiclesList', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(VehiclesList);
+export default compose(withReducer, withSaga, withConnect)(VehiclesList);

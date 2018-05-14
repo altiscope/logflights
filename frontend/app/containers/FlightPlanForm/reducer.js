@@ -44,7 +44,6 @@ const initialState = fromJS({
 
 function flightPlanFormReducer(state = initialState, action) {
   switch (action.type) {
-
     case GET_MISSION_TYPES_FULFILLED:
       return state
         .setIn(['ui', 'missionTypesPending'], false)
@@ -67,8 +66,7 @@ function flightPlanFormReducer(state = initialState, action) {
         .setIn(['data', 'flightPlan'], action.payload.flightPlan);
 
     case CREATE_FLIGHT_PLAN_PENDING:
-      return state
-        .setIn(['ui', 'createFlightPlanPending'], action.payload.isPending);
+      return state.setIn(['ui', 'createFlightPlanPending'], action.payload.isPending);
 
     case GET_FLIGHT_PLAN_PENDING:
       return state.setIn(['ui', 'getFlightPlanPending'], action.payload.isPending);

@@ -10,6 +10,7 @@ import {
   CREATE_NEW_PASSWORD_FULFILLED,
 } from './constants';
 
+// eslint-disable-next-line camelcase
 export function createNewPassword({ new_password1, new_password2, token }) {
   return {
     type: CREATE_NEW_PASSWORD,

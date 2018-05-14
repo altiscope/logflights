@@ -44,10 +44,9 @@ const { Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
 export class PlannerWrapper extends React.Component {
-
   state = {
     collapsed: false,
-  }
+  };
 
   componentWillMount() {
     this.props.getCurrentUser();
@@ -55,7 +54,7 @@ export class PlannerWrapper extends React.Component {
 
   onCollapse = () => {
     this.setState({ collapsed: !this.state.collapsed });
-  }
+  };
 
   render() {
     const { match } = this.props;
@@ -76,13 +75,18 @@ export class PlannerWrapper extends React.Component {
             <Logo className="logo">
               <IndexLink to="/dashboard">
                 {this.state.collapsed && <Icon type="home" />}
-                {!this.state.collapsed && (<span>log.flights</span>)}
+                {!this.state.collapsed && <span>log.flights</span>}
               </IndexLink>
             </Logo>
             <Menu theme="dark" mode="inline">
               <SubMenu
                 key="vehicles"
-                title={<span><Icon type="car" /><span>Vehicles</span></span>}
+                title={
+                  <span>
+                    <Icon type="car" />
+                    <span>Vehicles</span>
+                  </span>
+                }
               >
                 <Menu.Item key="vehicle:list">
                   <Link to={VEHICLES_PATH(match.url)}>Vehicle List</Link>
@@ -94,7 +98,12 @@ export class PlannerWrapper extends React.Component {
               </SubMenu>
               <SubMenu
                 key="flight-plan"
-                title={<span><Icon type="rocket" /><span>Flight Plans</span></span>}
+                title={
+                  <span>
+                    <Icon type="rocket" />
+                    <span>Flight Plans</span>
+                  </span>
+                }
               >
                 <Menu.Item key="flight-plan:list">
                   <Link to={FLIGHT_PLANS_PATH(match.url)}>Flight Plan List</Link>
@@ -114,8 +123,7 @@ export class PlannerWrapper extends React.Component {
               currentUser={this.props.currentUser}
             />
             <MainContent>
-              <Breadcrumbs>
-              </Breadcrumbs>
+              <Breadcrumbs />
               <ContentHolder>
                 <Switch>
                   <Route exact path={match.url} component={PlannerIndex} />
@@ -128,12 +136,8 @@ export class PlannerWrapper extends React.Component {
             <Footer style={{ textAlign: 'center' }}>
               log.flights from Altiscope © A³ by Airbus
               <div>
-                <FooterLink to="/terms-of-service">
-                  Terms of Service
-                </FooterLink>
-                <FooterLink to="/privacy-policy">
-                  Privacy Policy
-                </FooterLink>
+                <FooterLink to="/terms-of-service">Terms of Service</FooterLink>
+                <FooterLink to="/privacy-policy">Privacy Policy</FooterLink>
                 <FooterLink to="https://github.com/altiscope/logflights" target="_blank">
                   GitHub
                 </FooterLink>
@@ -169,8 +173,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'plannerWrapper', reducer });
 const withSaga = injectSaga({ key: 'plannerWrapper', saga });
 
-export default compose(
-  withConnect,
-  withReducer,
-  withSaga,
-)(PlannerWrapper);
+export default compose(withConnect, withReducer, withSaga)(PlannerWrapper);

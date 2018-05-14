@@ -47,8 +47,9 @@ function flightPlanListReducer(state = initialState, action) {
       // TODO: create helper for this
       const flightPlans = state.getIn(['data', 'flightPlans']);
       const updatedFlightPlans = flightPlans.update(
-          flightPlans.findIndex((item) => item.get('id') === action.payload.flightPlanId), (item) => item.set('state', 'invalid')
-        );
+        flightPlans.findIndex((item) => item.get('id') === action.payload.flightPlanId),
+        (item) => item.set('state', 'invalid')
+      );
 
       return state
         .setIn(['ui', 'invalidateFlightPlanPending'], false)
@@ -75,8 +76,9 @@ function flightPlanListReducer(state = initialState, action) {
       // TODO: create Helpers for this
       const fps = state.getIn(['data', 'flightPlans']);
       const updatedFps = fps.update(
-          fps.findIndex((item) => item.get('id') === action.payload.flightPlanId), (item) => item.set('state', 'completed')
-        );
+        fps.findIndex((item) => item.get('id') === action.payload.flightPlanId),
+        (item) => item.set('state', 'completed')
+      );
 
       return state
         .setIn(['ui', 'markAsCompletedPending'], false)
@@ -89,4 +91,3 @@ function flightPlanListReducer(state = initialState, action) {
 }
 
 export default flightPlanListReducer;
-

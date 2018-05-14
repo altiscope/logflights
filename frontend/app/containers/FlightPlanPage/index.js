@@ -26,23 +26,17 @@ const FLIGHT_PLAN_DETAILS_PATH = (url) => `${url}/:id`;
 const FLIGHT_PLAN_CREATE_PATH = (url) => `${url}/new`;
 const FLIGHT_PLAN_UPDATE_PATH = (url) => `${url}/:id/update`;
 
-export class FlightPlanPage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-  render() {
-    const { match } = this.props;
-
-    return (
-      <div>
-        <Switch>
-          <Route exact path={FLIGHT_PLANS_LIST_PATH(match.url)} component={FlightPlanList} />
-          <Route exact path={FLIGHT_PLAN_CREATE_PATH(match.url)} component={FlightPlanForm} />
-          <Route exact path={FLIGHT_PLAN_DETAILS_PATH(match.url)} component={FlightPlanDetails} />
-          <Route exact path={FLIGHT_PLAN_UPDATE_PATH(match.url)} component={FlightPlanForm} />
-          <Route path="" render={() => (<Redirect push to="/not-found" />)} />
-        </Switch>
-      </div>
-    );
-  }
-}
+export const FlightPlanPage = ({ match }) => (
+  <div>
+    <Switch>
+      <Route exact path={FLIGHT_PLANS_LIST_PATH(match.url)} component={FlightPlanList} />
+      <Route exact path={FLIGHT_PLAN_CREATE_PATH(match.url)} component={FlightPlanForm} />
+      <Route exact path={FLIGHT_PLAN_DETAILS_PATH(match.url)} component={FlightPlanDetails} />
+      <Route exact path={FLIGHT_PLAN_UPDATE_PATH(match.url)} component={FlightPlanForm} />
+      <Route path="" render={() => <Redirect push to="/not-found" />} />
+    </Switch>
+  </div>
+);
 
 FlightPlanPage.propTypes = {
   match: PropTypes.object,
@@ -63,8 +57,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'flightPlanPage', reducer });
 const withSaga = injectSaga({ key: 'flightPlanPage', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(FlightPlanPage);
+export default compose(withReducer, withSaga, withConnect)(FlightPlanPage);

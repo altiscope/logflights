@@ -119,6 +119,7 @@ module.exports = (options) => ({
         APP_DOMAIN: JSON.stringify(process.env.APP_DOMAIN),
         API_HOST: JSON.stringify(process.env.API_HOST),
         API_ENDPOINT: JSON.stringify(process.env.API_ENDPOINT),
+        GOOGLE_ANALYTICS_TRACKING_ID: JSON.stringify(process.env.GOOGLE_ANALYTICS_TRACKING_ID),
       },
     }),
     new webpack.NamedModulesPlugin(),

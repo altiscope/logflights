@@ -19,19 +19,19 @@ const FLIGHT_PLANS_PATH = (url) => `${url}/flight-plans`;
 const CREATE_FLIGHT_PLAN_PATH = (url) => `${url}/flight-plans/new`;
 
 const Sidebar = ({ matchUrl, onCollapse, collapsed }) => (
-  <Sider
-    collapsible
-    trigger={null}
-    collapsed={collapsed}
-    onCollapse={onCollapse}
-  >
+  <Sider collapsible trigger={null} collapsed={collapsed} onCollapse={onCollapse}>
     <Logo>
       <IndexLink to="/planner">log.flights</IndexLink>
     </Logo>
     <Menu theme="dark" mode="inline">
       <SubMenu
         key="vehicles"
-        title={<span><Icon type="car" /><span>Vehicles</span></span>}
+        title={
+          <span>
+            <Icon type="car" />
+            <span>Vehicles</span>
+          </span>
+        }
       >
         <Menu.Item key="vehicle:list">
           <Link to={VEHICLES_PATH(matchUrl)}>Vehicle List</Link>
@@ -43,7 +43,12 @@ const Sidebar = ({ matchUrl, onCollapse, collapsed }) => (
       </SubMenu>
       <SubMenu
         key="flight-plan"
-        title={<span><Icon type="rocket" /><span>Flight Plans</span></span>}
+        title={
+          <span>
+            <Icon type="rocket" />
+            <span>Flight Plans</span>
+          </span>
+        }
       >
         <Menu.Item key="flight-plan:list">
           <Link to={FLIGHT_PLANS_PATH(matchUrl)}>Flight Plan List</Link>

@@ -18,7 +18,7 @@ you'll need to install the requirements and then set up the Django application.
 ### Requirements
 
 You will need Python and related tools installed:
-* Python 2.7 (`pyenv` is useful if you need to run multiple versions)
+* Python 3.6 (`pyenv` is useful if you need to run multiple versions, Python2 is not supported)
 * PIP
 * VirtualEnv: `pip install virtualenv`
 
@@ -50,6 +50,16 @@ the JSON file.
 
 ```
 export GOOGLE_APPLICATION_CREDENTIALS=~/.google/creds.json
+```
+
+Settings that are specific to your deployment should be set in `logflights/local_settings.py`.
+This file will not exist, you should create it. It is imported as a standard python
+file. Common things to include in this file are:
+
+```
+SITE_NAME='log.flights'
+GOOGLE_MAPS_API_KEY = 'YOUR_GMAPS_KEY'
+SENDGRID_API_KEY='YOUR_KEY'
 ```
 
 You'll also need to know the name of the GCS bucket to use for development.
@@ -102,8 +112,15 @@ App will run at:
 
 http://127.0.0.1:3000
 
-To ensure it is possible to upload waypoint or telemetry files from the development URL, set `LOCAL_DEV` to `True` in `logflights/settings.py`.
+### Google Analytics
 
+Update the files in `frontend/.env.production` and `frontend/env.local` with your Google Analytics tracking ID.
+
+Example:
+
+```
+GOOGLE_ANALYTICS_TRACKING_ID=UA-Example-1
+```
 
 ### Lint before commit
 ```

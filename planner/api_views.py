@@ -31,20 +31,20 @@ from rest_framework import viewsets
 from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import status
-from rest_framework.decorators import detail_route, list_route, api_view
+from rest_framework.decorators import action, detail_route, list_route, api_view
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 from rest_framework.schemas import AutoSchema
 from rest_framework.reverse import reverse
 
+from planner import assessment
 from planner import models
 from planner import serializers
 from planner import tasks
 
-
 router = DefaultRouter()
-
+assessment = assessment.Assess()
 
 class BaseViewset(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
@@ -57,7 +57,7 @@ class BaseViewset(mixins.CreateModelMixin,
 class IsOperator(IsAuthenticated):
     def has_object_permission(self, request, view, obj):
         return (hasattr(obj, 'operator') and
-                request.user.is_authenticated() and
+                request.user.is_authenticated and
                 request.user.operator == obj.operator)
 
 
@@ -82,7 +82,7 @@ class Vehicles(BaseViewset):
         user = self.request.user
 
         # For non-public pages each operator can only see the vehicles registered under it's own account.
-        if user.is_authenticated():
+        if user.is_authenticated:
             queryset = queryset.exclude(~Q(operator=user.operator))
 
         return queryset.order_by('-created_at')
@@ -185,7 +185,7 @@ class FlightPlans(BaseViewset):
         user = self.request.user
 
         # For non-public pages each operator can only see the flight plans registered under it's own account.
-        if user.is_authenticated():
+        if user.is_authenticated:
             queryset = queryset.exclude(~Q(operator=user.operator))
 
         return queryset.order_by('-planned_departure_time')
@@ -302,6 +302,32 @@ class FlightPlans(BaseViewset):
                     flight_plan = fp
                 )
                 tasks.process_waypoints.delay(wm.id)
+                return Response({
+                    "success": True,
+                    "wm_id": wm.id,
+                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s"%(wm.id, 'waypoints')
+                }, status=200)
+            elif type == 'waypoints_array':
+                # Validate data
+                for waypoint in request.data['params']['waypoints']:
+                    data = {
+                        'order': waypoint['order'],
+                        'latitude': waypoint['latitude'],
+                        'longitude': waypoint['longitude'],
+                        'altitude_relative': waypoint['altitude_relative'],
+                        'altitude': waypoint['altitude'],
+                    }
+
+                    if not serializers.WaypointSerializer(data=data).is_valid():
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                # Create task
+                wm = models.WaypointMetadata.objects.create(
+                    operator = request.user.operator,
+                    path = None,
+                    flight_plan = fp,
+                )
+                tasks.process_waypoints.delay(wm.id, request.data['params']['waypoints'])
                 return Response({
                     "success": True,
                     "wm_id": wm.id,
@@ -508,6 +534,7 @@ def current_user_details(request):
            'id': current_user.id,
            'organization': operator.organization,
            'mobile_number': operator.mobile_number,
+           'altitude_unit': operator.altitude_unit,
         }
     else:
         user_details = {'error': 'Unauthorized user - 403'}
@@ -562,7 +589,7 @@ class ResetPassword(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
-        
+
         if serializer.is_valid():
             data = serializer.data.get('email_or_username')
         else:
@@ -576,7 +603,7 @@ class ResetPassword(generics.CreateAPIView):
                         'email': user.email,
                         'domain': request.META['HTTP_HOST'],
                         'site_name': settings.SITE_NAME,
-                        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                        'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'),
                         'user': user,
                         'token': default_token_generator.make_token(user),
                         'protocol': 'http',
@@ -593,10 +620,10 @@ class ResetPassword(generics.CreateAPIView):
                     except Exception as e:
                         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
                 return Response({ 'success': 'email sent'}, status=status.HTTP_200_OK)
-            return Response({ 'error': 'user does not exists' }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({ 'error': 'Username does not exist' }, status=status.HTTP_400_BAD_REQUEST)
         else:
             '''
-            If the input is an username, then the following code will lookup for users associated with that user. 
+            If the input is an username, then the following code will lookup for users associated with that user.
             If found then an email will be sent to the user's address
             '''
             associated_users = get_user_model().objects.filter(username=data)
@@ -606,7 +633,7 @@ class ResetPassword(generics.CreateAPIView):
                         'email': user.email,
                         'domain': request.META['HTTP_HOST'],
                         'site_name': settings.SITE_NAME,
-                        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                        'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'),
                         'user': user,
                         'token': default_token_generator.make_token(user),
                         'protocol': 'http',
@@ -623,7 +650,7 @@ class ResetPassword(generics.CreateAPIView):
                     except Exception as e:
                         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
                 return Response({ 'sucess': 'email sent' }, status=status.HTTP_200_OK)
-            return Response({ 'error': 'username does not exists'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({ 'error': 'Username does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ResetPasswordConfirm(generics.CreateAPIView):
@@ -638,9 +665,10 @@ class ResetPasswordConfirm(generics.CreateAPIView):
         serializer = self.get_serializer(request.data)
         uidb64 = kwargs['uidb64']
         token = kwargs['token']
+
         # assert uidb64 is not None and token is not None  # checked by URLconf
         try:
-            uid = urlsafe_base64_decode(uidb64)
+            uid = urlsafe_base64_decode(uidb64).decode('utf-8')
             user = UserModel._default_manager.get(pk=uid)
         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
             user = None
@@ -653,3 +681,25 @@ class ResetPasswordConfirm(generics.CreateAPIView):
                 user.save()
                 return Response("Success.", status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class Waypoints(mixins.ListModelMixin, viewsets.GenericViewSet):
+    serializer_class = serializers.WaypointSerializer
+    permission_classes = (IsOperator,)
+
+    def retrieve(self, request, *arg, **kwargs):
+        wm = models.WaypointMetadata.objects.get(id=kwargs.get('pk'))
+        if self.check_object_permissions(request, wm):
+            return Response({'error': "Unauthorized"}, status=401)
+
+        query = models.Waypoint.objects.filter(waypoint_metadata_id=kwargs.get('pk')).order_by('order')
+
+        waypoints = []
+        for waypoint in query:
+            data = serializers.WaypointSerializer(waypoint).data
+            waypoints.append(data)
+
+        return Response(data={
+            "waypoints": waypoints,
+        })
+
+router.register(r'waypoints', Waypoints, 'waypoints')

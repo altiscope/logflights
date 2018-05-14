@@ -20,10 +20,17 @@ import Filters from './Filters';
 import reducer from './reducer';
 import saga from './saga';
 import { flightPlanGridColumns } from './constants';
-import { getFlightPlans, invalidateFlightPlan, setFlightPlansFilter, cloneFlightPlan, markAsCompleted } from './actions';
+import {
+  getFlightPlans,
+  invalidateFlightPlan,
+  setFlightPlansFilter,
+  cloneFlightPlan,
+  markAsCompleted,
+} from './actions';
 import CloneFlightPlanLink from './CloneFlightPlanLink';
 
-export class FlightPlanList extends React.Component { // eslint-disable-line react/prefer-stateless-function
+export class FlightPlanList extends React.Component {
+  // eslint-disable-line react/prefer-stateless-function
 
   componentWillMount() {
     this.props.getFlightPlans();
@@ -47,39 +54,42 @@ export class FlightPlanList extends React.Component { // eslint-disable-line rea
             cloneFlightPlan={this.props.cloneFlightPlan}
           />
           <span className="ant-divider" />
-          { this.renderInvalidateAction(record) }
-          { this.renderMarkAsCompletedAction(record) }
+          {this.renderInvalidateAction(record)}
+          {this.renderMarkAsCompletedAction(record)}
           <Link to={detailsUrl(record.id)}>Details</Link>
         </span>
       ),
     });
-  }
+  };
 
   cloneFlightPlan = (event, flightPlanId) => {
     event.preventDefault();
 
     this.props.cloneFlightPlan(flightPlanId);
-  }
+  };
 
   invalidateFlightPlan = (flightPlanId) => {
     this.props.invalidateFlightPlan(flightPlanId);
-  }
+  };
 
   markAsCompleted = (flightPlanId) => {
     this.props.markAsCompleted(flightPlanId);
-  }
+  };
 
-  flightPlans = () => (
-    this.props.flightPlans.map((fp) => (
-      {
-        ...fp,
-        key: String(fp.id),
-        vehicle: fp.vehicle.model,
-        planned_departure_time: moment.unix(fp.planned_departure_time).utc().format('YYYY-MM-DD HH:mm:ss'),
-        planned_arrival_time: moment.unix(fp.planned_arrival_time).utc().format('YYYY-MM-DD HH:mm:ss'),
-      }
-    ))
-  )
+  flightPlans = () =>
+    this.props.flightPlans.map((fp) => ({
+      ...fp,
+      key: String(fp.id),
+      vehicle: fp.vehicle.model,
+      planned_departure_time: moment
+        .unix(fp.planned_departure_time)
+        .utc()
+        .format('YYYY-MM-DD HH:mm:ss'),
+      planned_arrival_time: moment
+        .unix(fp.planned_arrival_time)
+        .utc()
+        .format('YYYY-MM-DD HH:mm:ss'),
+    }));
 
   renderInvalidateAction = (record) => {
     const confirmText = 'Invalidate flight plan?';
@@ -95,7 +105,7 @@ export class FlightPlanList extends React.Component { // eslint-disable-line rea
       );
     }
     return null;
-  }
+  };
 
   renderMarkAsCompletedAction = (record) => {
     const confirmText = 'Mark flight plan as completed?';
@@ -110,10 +120,14 @@ export class FlightPlanList extends React.Component { // eslint-disable-line rea
       );
     }
     return null;
-  }
+  };
 
   render() {
-    const { getFlightPlansPending, invalidateFlightPlanPending, markAsCompletedPending } = this.props.flightPlanList.ui;
+    const {
+      getFlightPlansPending,
+      invalidateFlightPlanPending,
+      markAsCompletedPending,
+    } = this.props.flightPlanList.ui;
     const locale = { emptyText: 'No Data' };
     const flights = this.flightPlans();
 
@@ -134,7 +148,13 @@ export class FlightPlanList extends React.Component { // eslint-disable-line rea
             dataSource={this.props.flightPlans}
             onChange={this.handleChange}
             locale={locale}
-            pagination={{ total: flights.length, size: 'small', showSizeChanger: true, showQuickJumper: true, defaultPageSize: 20 }}
+            pagination={{
+              total: flights.length,
+              size: 'small',
+              showSizeChanger: true,
+              showQuickJumper: true,
+              defaultPageSize: 20,
+            }}
           />
         </Col>
       </Row>
@@ -173,8 +193,4 @@ const withConnect = connect(mapStateToProps, mapDispatchToProps);
 const withReducer = injectReducer({ key: 'flightPlanList', reducer });
 const withSaga = injectSaga({ key: 'flightPlanList', saga });
 
-export default compose(
-  withReducer,
-  withSaga,
-  withConnect,
-)(FlightPlanList);
+export default compose(withReducer, withSaga, withConnect)(FlightPlanList);

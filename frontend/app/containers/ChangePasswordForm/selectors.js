@@ -9,17 +9,12 @@ const selectChangePasswordFormDomain = (state) => state.get('changePasswordForm'
  * Other specific selectors
  */
 
-
 /**
  * Default selector used by ChangePasswordForm
  */
 
-const makeSelectChangePasswordForm = () => createSelector(
-  selectChangePasswordFormDomain,
-  (substate) => substate.toJS()
-);
+const makeSelectChangePasswordForm = () =>
+  createSelector(selectChangePasswordFormDomain, (substate) => substate.toJS());
 
 export default makeSelectChangePasswordForm;
-export {
-  selectChangePasswordFormDomain,
-};
+export { selectChangePasswordFormDomain };
