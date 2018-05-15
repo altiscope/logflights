@@ -61,15 +61,15 @@ INSTALLED_APPS = [
     'storages',
     'widget_tweaks',
     'planner.custom_tag',
-    'pyulog',
     'health_check',
     'health_check.db',
     'health_check.cache',
+    'health_check.contrib.celery',
     'rest_framework',
     'rest_framework_swagger',
     'django_filters',
     'corsheaders',
-    'health_check.contrib.celery'
+    'waffle',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +81,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'waffle.middleware.WaffleMiddleware',
 ]
 
 # Add classes by name that support the assessment interface
