@@ -44,6 +44,11 @@ def generate_metadata(points):
             'location': None,
             'country': None,
         }
+    # In some cases the latitude/longitude data is empty since the battery/voltage
+    # information is interleaved with the location information.
+    points = [p for p in points if p.latitude is not None and p.longitude is not None]
+    if len(points) == 0:
+        raise Exception('No valid latitude and longitude points')
     distance = Geo.calc_distance(points)
     loc = Geo.get_location(points[0])
     return {

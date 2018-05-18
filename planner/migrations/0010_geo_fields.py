@@ -2,6 +2,9 @@
 
 from django.db import migrations, models
 from planner.tasks import generate_metadata, save_metadata
+import logging
+
+logger = logging.getLogger(__name__)
 
 def add_flight_metadata(apps, schema_editor):
     FlightPlan = apps.get_model('planner', 'FlightPlan')
@@ -10,13 +13,20 @@ def add_flight_metadata(apps, schema_editor):
         if fp.waypoints:
             wps = fp.waypoints.waypoints.order_by('order')
             if len(wps) > 0:
-                meta = generate_metadata(wps)
-                save_metadata(fp.waypoints, meta)
+                try:
+                    meta = generate_metadata(wps)
+                    save_metadata(fp.waypoints, meta)
+                except Exception as e:
+                    logger.error('Error in add_flight_metadata for waypoints(%s): %s' % (fp.waypoints.id, str(e)))
         if fp.telemetry:
             telemetries = fp.telemetry.telemetries.order_by('time')
             if len(telemetries) > 0:
-                meta = generate_metadata(telemetries)
-                save_metadata(fp.telemetry, meta)
+                try:
+                    meta = generate_metadata(telemetries)
+                    save_metadata(fp.telemetry, meta)
+                except Exception as e:
+                    logger.error('Error in add_flight_metadata for telemetry(%s): %s' % (fp.telemetry.id, str(e)))
+
 
 class Migration(migrations.Migration):
 
