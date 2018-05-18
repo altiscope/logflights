@@ -266,10 +266,10 @@ def process_kml_waypoints(wm, file_path):
     create_pts_and_metadata(wm, Waypoint, waypoints)
     return len(waypoints)
 
-def process_array_waypoints(wm, waypoints):
-    newWaypoints = []
-    for waypoint in waypoints:
-        newWaypoints.append(
+def process_array_waypoints(wm, data):
+    waypoints = []
+    for waypoint in data:
+        waypoints.append(
             Waypoint(
                 order= waypoint['order'],
                 latitude= waypoint['latitude'],
@@ -280,7 +280,7 @@ def process_array_waypoints(wm, waypoints):
             )
         )
     create_pts_and_metadata(wm, Waypoint, waypoints)
-    return len(newWaypoints)
+    return len(waypoints)
 
 WAYPOINT_PROCESSORS = [
     (WaypointMetadata.PROCESSOR_QGC_TEXT, process_qgc_text),
