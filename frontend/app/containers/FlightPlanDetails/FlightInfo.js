@@ -9,8 +9,31 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'lodash';
 import { Row, Col, Upload, Button, Icon, message } from 'antd';
+import { Link } from 'react-router-dom';
 import { getDefaultOptions as getDefaultAPIOptions } from 'services/api';
-import { FlightInfoWrapper, Info } from './styles';
+
+const formatDuration = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const totalSecondsRemainder = totalSeconds % 3600;
+  const minutes = Math.floor(totalSecondsRemainder / 60);
+  // const seconds = Math.floor(totalSeconds % 60);
+  let duration = '';
+  if (hours > 0) {
+    duration += `${hours} hours`;
+  }
+  if (minutes > 0) {
+    duration += ` ${minutes} minutes`;
+  }
+  // if (seconds > 0) {
+  //   duration += ` ${seconds} seconds`;
+  // }
+  return duration;
+};
+
+const formatTime = (time) => {
+  const format = 'YYYY-MM-DD HH:mm:ss ';
+  return moment(new Date(time * 1000)).format(format);
+};
 
 class FlightInfo extends PureComponent {
   getUploadProps = () => {
@@ -97,12 +120,7 @@ class FlightInfo extends PureComponent {
     const downloadLink = `${baseURL}/plans/${this.props.flightPlan.id}/download_telemetry/`;
     const hasTelemetry = this.props.telemetry.length > 0;
 
-    const isOwner =
-      this.props.flightPlan &&
-      this.props.currentUser &&
-      this.props.flightPlan.operator === this.props.currentUser.organization;
-
-    if (this.props.mode === 'public' || !isOwner) {
+    if (this.props.mode === 'public' || !this.props.isOwner) {
       if (hasTelemetry) {
         return <a href={downloadLink}>Download Telemetry</a>;
       }
@@ -120,67 +138,97 @@ class FlightInfo extends PureComponent {
   }
 
   render() {
-    const { flightPlan } = this.props;
-    // eslint-disable-next-line camelcase
-    const { planned_arrival_time, planned_departure_time } = flightPlan;
-    const format = 'YYYY-MM-DD HH:mm:ss ';
-
-    // eslint-disable-next-line camelcase
-    const arrivalTime = moment(new Date(planned_arrival_time * 1000)).format(format);
-    const departureTime = moment(
+    const { flightPlan, telemetry, waypoints, isOwner } = this.props;
+    const {
       // eslint-disable-next-line camelcase
-      new Date(planned_departure_time * 1000)
-    ).format(format);
+      planned_duration_in_secs,
+      // eslint-disable-next-line camelcase
+      planned_arrival_time,
+      // eslint-disable-next-line camelcase
+      planned_departure_time,
+    } = flightPlan;
+
+    const distance = _.get(
+      flightPlan.telemetry ? flightPlan.telemetry : flightPlan.waypoints,
+      'distance',
+      0
+    );
+    const items = [
+      { label: 'FLIGHT ID', value: flightPlan.flight_id },
+      { label: 'VEHICLE SERIAL#', value: _.get(flightPlan, 'vehicle.serial_number', '') },
+      { label: 'MISSION TYPE', value: _.get(flightPlan, 'mission_type', '') },
+      {
+        label: 'LOCATION',
+        value: _.get(
+          flightPlan.telemetry ? flightPlan.telemetry : flightPlan.waypoints,
+          'location',
+          ''
+        ),
+      },
+      {
+        label: 'DISTANCE',
+        value: `${Math.round(distance)} meters`,
+      },
+      { label: 'PLANNED DEPARTURE TIME', value: formatTime(planned_departure_time) },
+      { label: 'PLANNED ARRIVAL TIME', value: formatTime(planned_arrival_time) },
+      { label: 'PLANNED DURATION', value: formatDuration(planned_duration_in_secs) },
+      { label: 'TELEMETRY', value: this.renderTelemetryControls() },
+    ];
+
+    if (telemetry.length > 0 && flightPlan.telemetry) {
+      items.push(
+        {
+          label: 'ACTUAL DEPARTURE TIME',
+          value: formatTime(flightPlan.telemetry.actual_departure_time),
+        },
+        {
+          label: 'ACTUAL ARRIVAL TIME',
+          value: formatTime(flightPlan.telemetry.actual_arrival_time),
+        },
+        {
+          label: 'ACTUAL DURATION',
+          value: formatDuration(flightPlan.telemetry.actual_duration_in_secs),
+        }
+      );
+    }
+
+    if (isOwner && waypoints.length === 0) {
+      items.push({
+        label: 'WAYPOINTS',
+        value: <Link to={`/dashboard/flight-plans/${flightPlan.id}/update`}>Upload Waypoints</Link>,
+      });
+    } else if (!isOwner) {
+      items.push({
+        label: 'WAYPOINTS',
+        value: 'No waypoints',
+      });
+    }
 
     return (
-      <Row>
-        <Col span="6">
-          <FlightInfoWrapper loading={this.props.isLoading}>
-            <Info>
-              <h3>Operator: </h3>
-              <p>{flightPlan.operator}</p>
-            </Info>
-            <Info>
-              <h3>Flight ID: </h3>
-              <p>{flightPlan.flight_id}</p>
-            </Info>
-            <Info>
-              <h3>Serial Number: </h3>
-              <p>{_.get(flightPlan, 'vehicle.serial_number', '')}</p>
-            </Info>
-          </FlightInfoWrapper>
-        </Col>
-        <Col span="6">
-          <FlightInfoWrapper loading={this.props.isLoading}>
-            <Info>
-              <h3>Departure Time: </h3>
-              <p>{departureTime}</p>
-            </Info>
-            <Info>
-              <h3>Arrival Time: </h3>
-              <p>{arrivalTime}</p>
-            </Info>
-            <Info>
-              <h3>Telemetry: </h3>
-              {this.renderTelemetryControls()}
-            </Info>
-          </FlightInfoWrapper>
-        </Col>
-      </Row>
+      <div className="lf-c-card lf-u-padding-sm">
+        {items.map(({ label, value }) => (
+          <Row key={label} className="lf-u-padding-sm">
+            <Col span="10" className="lf-u-color-secondary">
+              {label}
+            </Col>
+            <Col span="14">{value}</Col>
+          </Row>
+        ))}
+      </div>
     );
   }
 }
 
 FlightInfo.propTypes = {
-  isLoading: PropTypes.bool.isRequired,
   flightPlan: PropTypes.object.isRequired,
   uploadTelemetry: PropTypes.func.isRequired,
   setUploadedTelemetry: PropTypes.func.isRequired,
   uploadedTelemetry: PropTypes.array,
   telemetry: PropTypes.array,
   deleteTelemetry: PropTypes.func.isRequired,
-  currentUser: PropTypes.object,
   mode: PropTypes.oneOf(['public', 'private']),
+  isOwner: PropTypes.bool.isRequired,
+  waypoints: PropTypes.array.isRequired,
 };
 
 export default FlightInfo;

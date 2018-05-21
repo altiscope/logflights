@@ -77,7 +77,7 @@ function flightPlanDetailsReducer(state = initialState, action) {
       return state.setIn(['ui', 'uploadedTelemetry'], action.payload.fileList);
 
     case DELETE_TELEMETRY_FULFILLED:
-      return state.setIn(['ui', 'deleteTelemetryPending'], false).setIn(['data', 'telemetry'], {});
+      return state.setIn(['ui', 'deleteTelemetryPending'], false).setIn(['data', 'telemetry'], []);
 
     case TELEMETRY_PROCESSING:
       return state.setIn(['ui', 'telemetryProcessing'], action.payload.isProcessing);

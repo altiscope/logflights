@@ -352,6 +352,22 @@ class Assessment(BaseModel):
     STATE_RESCINDED = 'rescinded'
     STATE_ERROR = 'error'
 
+    STATES_ASSESS = [
+        STATE_READY,
+        STATE_PROCESSING,
+        STATE_SUCCESS,
+    ]
+
+    STATES_AUTHORIZE = [
+        STATE_WAITING,
+        STATE_RESCINDED,
+        STATE_REJECTED,
+        STATE_APPROVED,
+        STATE_CANCEL_REQUEST,
+        STATE_CANCELLED,
+        STATE_SUBMITTING,
+    ]
+
     STATES = [
         (STATE_READY, 'ready'),
         (STATE_CANCEL_REQUEST, 'request cancellation'),
@@ -382,3 +398,8 @@ class Assessment(BaseModel):
     approved_at = models.DateTimeField('submitted at', null=True)
     report = models.TextField('report path', null=True)
     error = models.TextField('error message', null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name', 'state', 'run_at', 'approved_at']),
+        ]

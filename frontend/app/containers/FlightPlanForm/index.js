@@ -289,6 +289,8 @@ export class FlightPlanForm extends React.Component {
         newWaypointId
       );
 
+    const { form } = this.props;
+
     return (
       <Row>
         <Row>
@@ -345,11 +347,21 @@ export class FlightPlanForm extends React.Component {
                   >
                     {this.generateFieldDecorator(
                       'planned_departure_time',
-                      requiredRule(),
+                      {
+                        ...requiredRule(),
+                        initialValue: moment(),
+                        onChange(value) {
+                          if (form.getFieldValue('planned_arrival_time') || !value) return;
+
+                          form.setFieldsValue({
+                            planned_arrival_time: value.clone().add(1, 'hour'),
+                          });
+                        },
+                      },
                       <DatePicker
                         style={controlWidth}
                         showTime
-                        format="YYYY-MM-DD HH:mm:ss"
+                        format="YYYY-MM-DD HH:mm"
                         placeholder="Select Time"
                       />
                     )}
@@ -362,11 +374,16 @@ export class FlightPlanForm extends React.Component {
                   >
                     {this.generateFieldDecorator(
                       'planned_arrival_time',
-                      arrivalDateRule(this.validateArrivalDate),
+                      {
+                        ...arrivalDateRule(this.validateArrivalDate),
+                        initialValue: moment().add(1, 'hour'),
+                      },
                       <DatePicker
                         style={controlWidth}
-                        showTime
-                        format="YYYY-MM-DD HH:mm:ss"
+                        showTime={{
+                          format: 'HH:mm',
+                        }}
+                        format="YYYY-MM-DD HH:mm"
                         placeholder="Select Time"
                       />
                     )}

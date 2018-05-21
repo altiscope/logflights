@@ -1,6 +1,5 @@
 import coreapi
 from django.core.files.storage import default_storage
-from django.urls import reverse
 from django_filters import rest_framework as django_filters
 from django.core import serializers as s
 from django.contrib.auth.models import User
@@ -19,13 +18,11 @@ from django.core.mail import send_mail
 from django.db.models.query_utils import Q
 from django.template import loader
 from django.http import JsonResponse
-from django.contrib.auth.models import AnonymousUser
 from django.db import IntegrityError
+from django.http import Http404
 
 from datetime import datetime
 from datetime import time
-from django.utils import timezone
-import pytz
 
 from rest_framework import viewsets
 from rest_framework import generics
@@ -60,19 +57,23 @@ class IsOperator(IsAuthenticated):
                 request.user.is_authenticated and
                 request.user.operator == obj.operator)
 
+class IsOperatorForAssessment(IsAuthenticated):
+    def has_object_permission(self, request, view, obj):
+        return (hasattr(obj, 'operator') and
+                request.user.is_authenticated and
+                request.user.operator == obj.flight_plan.operator)
 
 class IsOperatorOrReadOnly(IsOperator):
     def has_permission(self, request, view):
-        return True # We only want to limit object-level permission here
+        return True  # We only want to limit object-level permission here
 
     def has_object_permission(self, request, view, obj):
         return (request.method in SAFE_METHODS or
-                super(IsOperatorOrReadOnly, self).has_object_permission(request, view, obj)
-        )
+                super(IsOperatorOrReadOnly, self).has_object_permission(request, view, obj))
 
 
 class Vehicles(BaseViewset):
-    serializer_class =  serializers.VehicleSerializer
+    serializer_class = serializers.VehicleSerializer
     permission_classes = (IsOperatorOrReadOnly,)
     filter_fields = ('state', 'operator', 'vehicle_type', 'manufacturer')
     queryset = models.Vehicle.objects.all()
@@ -112,7 +113,7 @@ class Vehicles(BaseViewset):
                     serial_number=serial_number,
                     state=models.Vehicle.STATE_INACTIVE
                     ).id
-                return Response({'message':"Vehicle exists with the same serial number", "vehicle_id":vehicle_id}, 422)
+                return Response({'message': "Vehicle exists with the same serial number", "vehicle_id": vehicle_id}, 422)
         else:
             return Response(serializer.errors)
 
@@ -205,7 +206,7 @@ class FlightPlans(BaseViewset):
         if flightplan:
             flightplan.state = models.FlightPlan.STATE_INVALID
             flightplan.save()
-        return Response("Success.", status=status.HTTP_200_OK)
+        return Response({'success': True}, status=status.HTTP_200_OK)
 
     @detail_route(methods=['delete'], permission_classes=[IsOperator])
     def waypoint(self, request, *args, **kwargs):
@@ -218,8 +219,8 @@ class FlightPlans(BaseViewset):
             flightplan.waypoints = None
             wp.delete()
             flightplan.save()
-            return Response("Success.", status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': True}, status=status.HTTP_200_OK)
+        return Response({"error": "Invalid flight plan."}, status=status.HTTP_400_BAD_REQUEST)
 
     def _get_telemetry(self, fp, fields=None, filter=None):
         if fields is None:
@@ -228,11 +229,8 @@ class FlightPlans(BaseViewset):
         if filter:
             query = query.filter(filter)
         query = query.order_by('time')
-        serial = s.serialize('python',
-            query,
-            # whitelist fields for extraction
-            fields=fields
-            )
+        # whitelist fields for extraction
+        serial = s.serialize('python', query, fields=fields)
         return [d['fields'] for d in serial]
 
     @detail_route(methods=['get'], url_name="download-telemetry")
@@ -297,15 +295,15 @@ class FlightPlans(BaseViewset):
                     timestamp=request.data['params']['timestamp']
                 )
                 wm = models.WaypointMetadata.objects.create(
-                    operator = request.user.operator,
-                    path = path['path'],
-                    flight_plan = fp
+                    operator=request.user.operator,
+                    path=path['path'],
+                    flight_plan=fp
                 )
                 tasks.process_waypoints.delay(wm.id)
                 return Response({
                     "success": True,
                     "wm_id": wm.id,
-                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s"%(wm.id, 'waypoints')
+                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s" % (wm.id, 'waypoints')
                 }, status=200)
             elif type == 'waypoints_array':
                 # Validate data
@@ -318,20 +316,21 @@ class FlightPlans(BaseViewset):
                         'altitude': waypoint['altitude'],
                     }
 
-                    if not serializers.WaypointSerializer(data=data).is_valid():
+                    serializer = serializers.WaypointSerializer(data=data)
+                    if not serializer.is_valid():
                         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
                 # Create task
                 wm = models.WaypointMetadata.objects.create(
-                    operator = request.user.operator,
-                    path = None,
-                    flight_plan = fp,
+                    operator=request.user.operator,
+                    path=None,
+                    flight_plan=fp,
                 )
                 tasks.process_waypoints.delay(wm.id, request.data['params']['waypoints'])
                 return Response({
                     "success": True,
                     "wm_id": wm.id,
-                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s"%(wm.id, 'waypoints')
+                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s" % (wm.id, 'waypoints')
                 }, status=200)
             elif type == 'telemetry':
                 path = models.document_path(
@@ -348,7 +347,7 @@ class FlightPlans(BaseViewset):
                 return Response({
                     "success": True,
                     "tm_id": tm.id,
-                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s"%(tm.id, 'telemetry')
+                    "url": reverse("planner:plan-uploads", request=request)+"?id=%s&type=%s" % (tm.id, 'telemetry')
                 }, status=200)
             if path is None or default_storage.exists(path['path']) is False:
                 return Response({"error": "Unable to find uploaded file"}, status=400)
@@ -375,7 +374,7 @@ class FlightPlans(BaseViewset):
             instance=fp.waypoints,
         ).data)
 
-    @detail_route(methods=['get','delete'], permission_classes=[IsOperatorOrReadOnly])
+    @detail_route(methods=['get', 'delete'], permission_classes=[IsOperatorOrReadOnly])
     def telemetry(self, request, *args, **kwargs):
         """
         Endpoint to get or delete telemetry
@@ -387,8 +386,8 @@ class FlightPlans(BaseViewset):
                 flightplan.telemetry = None
                 tm.delete()
                 flightplan.save()
-                return Response("Success.", status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'success': True}, status=status.HTTP_200_OK)
+            return Response({'error': 'Invalid flight plan'}, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'GET':
             fp = self.get_object()
             if fp.telemetry:
@@ -452,12 +451,66 @@ class FlightPlans(BaseViewset):
             query = query.filter(operator_id=operator_id)
 
         query = query.order_by('-planned_departure_time')
-        plan_list = []
-        for plan in query:
-            plan_list.append(
-                serializers.FlightPlanGetSerializer(plan).data
-            )
-        return Response(data={"plans": plan_list})
+        return Response(data={"plans": serializers.FlightPlanGetSerializer(query, many=True).data})
+
+    @action(detail=True, methods=['get'], permission_classes=[IsOperator])
+    def assessments(self, request, *args, **kwargs):
+        """ Retrieve the latest approved assessment, and the latest round of assessments
+        """
+        flightPlan = self.get_object()
+
+        assessmentChoices = {}
+
+        if 'get_eligible' in request.GET:
+            assessmentChoices = assessment.get_eligible(flightPlan)
+        elif 'eligible_assessments[]' in request.GET:
+            try:
+                for assessmentName in request.GET.getlist('eligible_assessments[]'):
+                    assessmentChoices[assessmentName] = assessment.get_by_name(assessmentName)
+            except:
+                pass
+
+        assessmentInfo = []
+        for assessmentName, info in assessmentChoices.items():
+            # Get all most recent approved assessemnts
+            authorizationAssessmentsQuery = (models
+                .Assessment
+                .objects
+                .filter(name=assessmentName, flight_plan=flightPlan, state__in=models.Assessment.STATES_AUTHORIZE)
+                .order_by('-approved_at', '-run_at')
+                .values('id', 'state', 'created_at', 'run_at', 'submitted_at', 'approved_at', 'error')
+                )
+
+            authorizationAssessments = []
+            if authorizationAssessmentsQuery.count() > 0:
+                authorizationAssessments = authorizationAssessmentsQuery
+                for index, authorizationAssessment in enumerate(authorizationAssessments):
+                    authorizationAssessments[index]['report'] = assessment.get_assessment(authorizationAssessment['id'])
+
+            # Get last run assessment
+            lastRunAssessmentQuery = (models
+                .Assessment
+                .objects
+                .filter(name=assessmentName, flight_plan=flightPlan)
+                .order_by('-run_at')
+                .exclude(state__in=models.Assessment.STATES_AUTHORIZE)
+                .values('id', 'state', 'created_at', 'run_at', 'submitted_at', 'approved_at', 'error')
+                )
+
+            lastRunAssessment = None
+            if lastRunAssessmentQuery.count() > 0:
+                lastRunAssessment = lastRunAssessmentQuery.first()
+                lastRunAssessment['report'] = assessment.get_assessment(lastRunAssessment['id'])
+
+            assessmentInfo.append({
+                "info": info,
+                "authorizationAssessments": authorizationAssessments,
+                "lastRunAssessment": lastRunAssessment,
+            })
+
+        return Response(data={"assessmentInfo": assessmentInfo})
+
+
 
 router.register(r'plans', FlightPlans, base_name='plan')
 
@@ -488,6 +541,7 @@ class Manufacturers(mixins.ListModelMixin, viewsets.GenericViewSet):
             .order_by(Case(When(id__exact=0, then=Value('00000')), default=Lower('name')))
     )
 
+
 router.register(r'manufacturers', Manufacturers, 'manufacturer')
 
 
@@ -500,7 +554,7 @@ class UserSignupView(generics.ListCreateAPIView):
         try:
             return super(UserSignupView, self).create(request, *args, **kwargs)
         except IntegrityError as e:
-            content = { 'error': "error %s" % str(e) }
+            content = {'error': "error %s" % str(e)}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -523,8 +577,7 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
 @api_view(http_method_names=['GET', ])
 def current_user_details(request):
     if request.auth:
-        current_user = User.objects.get(
-        username=request.user)
+        current_user = User.objects.get(username=request.user)
         operator = models.Operator.objects.get(user=current_user)
         user_details = {
            'username': current_user.username,
@@ -539,7 +592,6 @@ def current_user_details(request):
     else:
         user_details = {'error': 'Unauthorized user - 403'}
     return Response(user_details)
-
 
 class UpdatePassword(generics.UpdateAPIView):
     """
@@ -566,7 +618,7 @@ class UpdatePassword(generics.UpdateAPIView):
             self.object.save()
             # make sure the user stays logged in
             update_session_auth_hash(request, self.object)
-            return Response("Success.", status=status.HTTP_200_OK)
+            return Response({'success': True}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -593,7 +645,7 @@ class ResetPassword(generics.CreateAPIView):
         if serializer.is_valid():
             data = serializer.data.get('email_or_username')
         else:
-            return Response({ 'error': 'invalid data' }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
 
         if self.validate_email_address(data) is True:
             associated_users= get_user_model().objects.filter(Q(email=data) | Q(username=data))
@@ -616,11 +668,11 @@ class ResetPassword(generics.CreateAPIView):
                     subject = ''.join(subject.splitlines())
                     email = loader.render_to_string(email_template_name, c)
                     try:
-                        send_mail(subject, email, settings.DEFAULT_FROM_EMAIL , [user.email,], fail_silently=False)
+                        send_mail(subject, email, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
                     except Exception as e:
                         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-                return Response({ 'success': 'email sent'}, status=status.HTTP_200_OK)
-            return Response({ 'error': 'Username does not exist' }, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'success': 'Email sent'}, status=status.HTTP_200_OK)
+            return Response({'error': 'Username does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             '''
             If the input is an username, then the following code will lookup for users associated with that user.
@@ -639,8 +691,8 @@ class ResetPassword(generics.CreateAPIView):
                         'protocol': 'http',
                         'reset_url': '/accounts/reset-password/new/',
                         }
-                    subject_template_name='account/email/password_reset_key_subject.txt'
-                    email_template_name='account/password_reset_from_key.html'
+                    subject_template_name = 'account/email/password_reset_key_subject.txt'
+                    email_template_name = 'account/password_reset_from_key.html'
                     subject = loader.render_to_string(subject_template_name, c)
                     # Email subject *must not* contain newlines
                     subject = ''.join(subject.splitlines())
@@ -649,7 +701,7 @@ class ResetPassword(generics.CreateAPIView):
                         send_mail(subject, email, settings.DEFAULT_FROM_EMAIL , [user.email], fail_silently=False)
                     except Exception as e:
                         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-                return Response({ 'sucess': 'email sent' }, status=status.HTTP_200_OK)
+                return Response({ 'success': 'Email sent' }, status=status.HTTP_200_OK)
             return Response({ 'error': 'Username does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -679,7 +731,7 @@ class ResetPasswordConfirm(generics.CreateAPIView):
             if new_password == copy :
                 user.set_password(new_password)
                 user.save()
-                return Response("Success.", status=status.HTTP_200_OK)
+                return Response({'success': True}, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class Waypoints(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -691,15 +743,63 @@ class Waypoints(mixins.ListModelMixin, viewsets.GenericViewSet):
         if self.check_object_permissions(request, wm):
             return Response({'error': "Unauthorized"}, status=401)
 
-        query = models.Waypoint.objects.filter(waypoint_metadata_id=kwargs.get('pk')).order_by('order')
-
-        waypoints = []
-        for waypoint in query:
-            data = serializers.WaypointSerializer(waypoint).data
-            waypoints.append(data)
-
+        queryset = models.Waypoint.objects.filter(waypoint_metadata_id=kwargs.get('pk')).order_by('order')
         return Response(data={
-            "waypoints": waypoints,
+            "waypoints": serializers.WaypointSerializer(queryset, many=True).data,
         })
 
 router.register(r'waypoints', Waypoints, 'waypoints')
+
+class Assessments(mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet):
+
+    permission_classes = (IsOperatorForAssessment,)
+    serializer_class = serializers.AssessmentSerializer
+    queryset = models.Assessment.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        """ Prepare to assess a flight plan
+        """
+        try:
+            flightPlanId = request.data['flight_plan_id']
+            flightPlan = models.FlightPlan.objects.get(pk=flightPlanId)
+            assessment_id = assessment.assess(request.data['short_name'], flightPlan)
+        except:
+            return Response({'error': "Error assessing flight plan"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'assessment_id': assessment_id}, status=status.HTTP_201_CREATED)
+
+    def partial_update(self, request, *args, **kwargs):
+        """ Update state to states like submitting or canceling an authorizated, otherwise refresh
+        """
+        state = request.data['state'] if 'state' in request.data else None
+        obj = self.get_object()
+        if state == models.Assessment.STATE_SUBMITTING:
+            # Submit
+            serializer = serializers.AssessmentCreateSerializer(instance=obj.flight_plan, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            try:
+                assessment.set_assessment_state(obj, models.Assessment.STATE_SUBMITTING)
+            except:
+                return Response({'error': 'Error submitting'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': True}, status=status.HTTP_205_RESET_CONTENT)
+
+        elif state == models.Assessment.STATE_CANCEL_REQUEST:
+            # Cancel
+            try:
+                assessment.set_assessment_state(obj, models.Assessment.STATE_CANCEL_REQUEST)
+            except:
+                return Response({'error': 'Error cancelling'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': True}, status=status.HTTP_205_RESET_CONTENT)
+        else:
+            # Refresh the assessment's state
+            try:
+                assessment_id = assessment.assess(obj.name, obj.flight_plan)
+            except:
+                return Response({'error': "Error assessing flight plan"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'assessment_id': assessment_id}, status=status.HTTP_205_RESET_CONTENT)
+        return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
+router.register(r'assessments', Assessments, 'assessments')

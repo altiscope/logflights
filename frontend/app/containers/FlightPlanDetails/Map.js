@@ -10,12 +10,7 @@ import classNames from 'classnames';
 import _ from 'lodash';
 
 import { mapStyles } from './constants';
-import {
-  MapWrapper,
-  WaypointsCTAWrapper,
-  UploadWaypointsCTA,
-  PublicWaypointCTAText,
-} from './styles';
+import { MapWrapper } from './styles';
 
 const google = window.google;
 
@@ -125,66 +120,7 @@ class Map extends PureComponent {
       }
     }
 
-    if (this.locations.length > 0) {
-      // Create an ElevationService.
-      const elevator = new google.maps.ElevationService();
-
-      this.displayPathElevation(this.locations, elevator, this.map);
-    }
-
     this.setState({ mapLoaded: true });
-  };
-
-  displayPathElevation = (path, elevator, map) => {
-    // Display a polyline of the elevation path.
-    // eslint-disable-next-line no-new
-    new google.maps.Polyline({
-      // eslint-disable-line
-      path,
-      strokeColor: '#0000CC',
-      strokeOpacity: 0.4,
-      map,
-    });
-
-    // Create a PathElevationRequest object using this array.
-    // Ask for 256 samples along that path.
-    // Initiate the path request.
-    elevator.getElevationAlongPath(
-      {
-        path,
-        samples: 256,
-      },
-      this.plotElevation
-    );
-  };
-
-  plotElevation = (elevations, status) => {
-    const chartDiv = document.getElementById('elevation-chart');
-    if (status !== 'OK') {
-      // Show the error code inside the chartDiv.
-      chartDiv.innerHTML = `Cannot show elevation: request failed because ${status}`;
-      return;
-    }
-    // Create a new chart in the elevation_chart DIV.
-    const chart = new google.visualization.ColumnChart(chartDiv);
-
-    // Extract the data from which to populate the chart.
-    // Because the samples are equidistant, the 'Sample'
-    // column here does double duty as distance along the
-    // X axis.
-    const data = new google.visualization.DataTable();
-    data.addColumn('string', 'Sample');
-    data.addColumn('number', 'Elevation');
-    for (let i = 0; i < elevations.length; i += 1) {
-      data.addRow(['', elevations[i].elevation]);
-    }
-
-    // Draw the chart using the data within its DIV.
-    chart.draw(data, {
-      height: 150,
-      legend: 'none',
-      titleY: 'Elevation (m)',
-    });
   };
 
   addMarker = (lat, lng) => {
@@ -213,27 +149,11 @@ class Map extends PureComponent {
 
   createLatLngObject = (latitude, longitude) => new google.maps.LatLng(latitude, longitude);
 
-  renderCTA = () => {
-    const { organization, flightPlanOperator, getWaypointsFulfilled } = this.props;
-    const UPDATE_FLIGHT_PLAN_PATH = `${this.props.matchUrl}/update`;
-
-    if (!getWaypointsFulfilled) return null;
-
-    if (organization && flightPlanOperator && organization === flightPlanOperator) {
-      return <UploadWaypointsCTA to={UPDATE_FLIGHT_PLAN_PATH}>Upload Waypoints</UploadWaypointsCTA>;
-    }
-
-    return <PublicWaypointCTAText>No Waypoints</PublicWaypointCTAText>;
-  };
-
   render() {
     const { waypoints = [] } = this.props.waypoints;
     const telemetries = this.props.telemetry || [];
     const hasNoWaypoints = waypoints && waypoints.length === 0;
     const hasNoTelemetry = telemetries && telemetries.length === 0;
-    const ctaClassnames = classNames({
-      hidden: (waypoints && waypoints.length > 0) || this.props.mode === 'public',
-    });
 
     const shouldShowMap = classNames({
       hidden: (hasNoWaypoints && hasNoTelemetry) || this.props.uploadTelemetryPending,
@@ -241,9 +161,7 @@ class Map extends PureComponent {
 
     return (
       <div>
-        <WaypointsCTAWrapper className={ctaClassnames}>{this.renderCTA()}</WaypointsCTAWrapper>
         <MapWrapper className={shouldShowMap} id="flight-plan-map" />
-        <div className={shouldShowMap} id="elevation-chart" />
       </div>
     );
   }
@@ -255,10 +173,6 @@ Map.propTypes = {
   uploadTelemetryPending: PropTypes.bool,
   waypoints: PropTypes.object,
   telemetry: PropTypes.array,
-  matchUrl: PropTypes.string.isRequired,
-  organization: PropTypes.string,
-  mode: PropTypes.oneOf(['public', 'private']),
-  flightPlanOperator: PropTypes.string,
 };
 
 export default Map;

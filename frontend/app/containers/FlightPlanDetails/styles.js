@@ -32,7 +32,7 @@ export const Info = styled.div`
 `;
 
 export const MapWrapper = styled.div`
-  margin: 24px 0;
+  margin: 0;
   min-height: 500px;
 `;
 

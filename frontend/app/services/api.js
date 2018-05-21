@@ -6,6 +6,8 @@
  */
 
 import axios from 'axios';
+import camelcaseKeysDeep from 'camelcase-keys-deep';
+import decamelizeKeysDeep from 'decamelize-keys-deep';
 
 let defaultOptions;
 
@@ -21,6 +23,29 @@ export function getClient(options = {}) {
     },
     ...options,
   });
+
+  // Convert response from_this toThis
+  if (options.camelize || options.camelcaseResponse) {
+    api.interceptors.response.use((response) => {
+      if (response.data) {
+        response.data = camelcaseKeysDeep(response.data);
+      }
+      return response;
+    });
+  }
+
+  // Convert request fromThis to_this
+  if (options.camelize || options.snakecaseRequest) {
+    api.interceptors.request.use((request) => {
+      if (request.params) {
+        request.params = decamelizeKeysDeep(request.params);
+      }
+      if (request.data) {
+        request.data = decamelizeKeysDeep(request.data);
+      }
+      return request;
+    });
+  }
 
   return api;
 }

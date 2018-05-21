@@ -26,6 +26,12 @@ def run_assessment(assessment_id):
         a.error = 'Assessment class not found: %s (%s)' % (a.klass, str(e))
         a.save()
         return None
+    if a.flight_plan.waypoints == None:
+        a.state = Assessment.STATE_ERROR
+        a.error = 'Missing waypoints'
+        a.save()
+        return None
+
     wp_raw = a.flight_plan.waypoints.waypoints.order_by('order')
     wp = [(w.longitude, w.latitude, w.altitude_relative) for w in wp_raw]
     flight = {
@@ -140,6 +146,7 @@ class Assess(object):
         if wm is None or short_name not in self._assessment_info:
             return False
         a = self._assessment_info[short_name]
+        in_region, in_country = False, False
         if 'region' in a and a['region'] is not None and len(a['region']) > 0 and wm.start_longitude is not None:
             in_region = Geo.within(wm.start_longitude, wm.start_latitude, a['region'])
         if 'country' in a and a['country'] is not None and len(a['country']) > 0 and wm.country is not None:
@@ -150,7 +157,7 @@ class Assess(object):
         """ Given a flight plan, return all eligible assessments """
         wm = fp.waypoints
         if wm is None:
-            return []
+            return {}
         result = {}
         for short_name in self._assessment_info.keys():
             if self.is_eligible(fp, short_name):
@@ -210,3 +217,11 @@ class Assess(object):
         except SomeModel.DoesNotExist:
             return None
         return a.state
+
+    def set_assessment_state(self, assessment, state):
+        """ Set the state of an assessment.
+        """
+        # @TODO This is a temporary placeholder for updating state,
+        #       update or remove this method as necesary.
+        assessment.state = state
+        assessment.save()

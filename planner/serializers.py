@@ -58,13 +58,13 @@ class WaypointMetadataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WaypointMetadata
-        fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message', 'waypoints')
+        fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message', 'waypoints', 'location', 'distance')
 
 class WaypointMetadataDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WaypointMetadata
-        fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message')
+        fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message', 'location', 'distance',)
 
 
 class FlightPlanPostSerializer(serializers.ModelSerializer):
@@ -112,7 +112,13 @@ class TelemetryMetadataDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = TelemetryMetadata
         fields = ['id', 'state', 'processor','path','error_message', 'actual_departure_time',
-                  'actual_arrival_time', 'autopilot_name', 'autopilot_version', 'vehicle_type',]
+                  'actual_arrival_time', 'autopilot_name', 'autopilot_version', 'vehicle_type',
+                  'location', 'distance',]
+
+class OperatorDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Operator
+        fields = ['user_id', 'organization',]
 
 
 # Serializer to be used for GET request, serializes the vehicles and waypoint details
@@ -120,9 +126,21 @@ class FlightPlanGetSerializer(FlightPlanPostSerializer):
     vehicle = VehicleSerializer(read_only=True)
     waypoints = WaypointMetadataDetailSerializer(read_only=True)
     telemetry = TelemetryMetadataDetailSerializer()
+    operator = OperatorDetailSerializer()
 
     class Meta(FlightPlanPostSerializer.Meta):
         fields = FlightPlanPostSerializer.Meta.fields + ('telemetry',)
+
+    def to_representation(self, instance):
+        result = super(FlightPlanGetSerializer, self).to_representation(instance)
+        diff = instance.planned_arrival_time - instance.planned_departure_time
+        result['planned_duration_in_secs'] = diff.total_seconds()
+
+        if (instance.telemetry):
+            diff = instance.telemetry.actual_arrival_time - instance.telemetry.actual_departure_time
+            result['telemetry']['actual_duration_in_secs'] = diff.total_seconds()
+
+        return result
 
 
 class OperatorSerializer(serializers.ModelSerializer):
@@ -252,4 +270,17 @@ class SetPasswordSerializer(serializers.Serializer):
 class CloneFlightSerializer(serializers.Serializer):
     flight_id = serializers.CharField(label=("Flight Id"), required=True)
 
+class AssessmentCreateSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = FlightPlan
+        fields = ("pilot_name", "pilot_phone")
+    def update(self, instance, validated_data):
+        instance.pilot_name = validated_data.get('pilot_name', instance.pilot_name)
+        instance.pilot_phone = validated_data.get('pilot_phone', instance.pilot_phone)
+        instance.save()
+        return instance
 
+class AssessmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assessment
+        fields = '__all__'

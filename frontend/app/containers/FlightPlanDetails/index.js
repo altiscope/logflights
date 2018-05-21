@@ -11,14 +11,13 @@ import { createStructuredSelector } from 'reselect';
 import { compose, bindActionCreators } from 'redux';
 import _ from 'lodash';
 import { Row, Col, Spin } from 'antd';
-
 import injectSaga from 'utils/injectSaga';
 import injectReducer from 'utils/injectReducer';
 import { makeSelectCurrentUser } from 'common/selectors';
+import H1 from 'components/H1';
 import makeSelectFlightPlanDetails from './selectors';
 import reducer from './reducer';
 import saga from './saga';
-import FlightCard from './FlightCard';
 import FlightInfo from './FlightInfo';
 import Map from './Map';
 import {
@@ -30,9 +29,10 @@ import {
   setUploadedTelemetry,
   deleteTelemetry,
 } from './actions';
+import Assessment from './Assessment';
 
 export class FlightPlanDetails extends React.Component {
-  componentWillMount() {
+  componentDidMount() {
     const planId = this.props.match.params.id;
 
     this.props.getPlan(planId);
@@ -61,18 +61,20 @@ export class FlightPlanDetails extends React.Component {
       telemetryProcessing,
       getTelemetryPending,
     } = flightPlanDetails.ui;
+
     const isLoading =
       getFlightPlanPending || getWaypointsPending || telemetryProcessing || getTelemetryPending;
 
     const telemetry = _.get(flightPlanDetails.data, 'telemetry', []);
+
+    const isOwner =
+      _.get(flightPlanDetails, 'data.flightPlan.operator.user_id') === this.props.currentUser.id;
     return (
       <main>
         <Spin spinning={isLoading}>
           <Row type="flex" justify="start">
-            <Col lg={{ span: 6 }} md={{ span: 12 }} sm={{ span: 12 }}>
-              <FlightCard />
-            </Col>
-            <Col md={{ span: 12 }} sm={{ span: 12 }}>
+            <Col md={{ span: 12 }} sm={{ span: 12 }} className="lf-u-padding-xl">
+              <H1>{_.get(flightPlanDetails.data.flightPlan, 'operator.organization', '')}</H1>
               <FlightInfo
                 mode={this.props.mode}
                 flightPlan={flightPlanDetails.data.flightPlan}
@@ -83,16 +85,21 @@ export class FlightPlanDetails extends React.Component {
                 telemetry={telemetry}
                 currentUser={this.props.currentUser}
                 isLoading={isLoading}
+                isOwner={this.props.mode === 'public' ? false : isOwner}
+                waypoints={
+                  this.props.mode === 'public'
+                    ? []
+                    : _.get(flightPlanDetails, 'data.waypoints.waypoints', [])
+                }
               />
+              {isOwner && <Assessment flightPlanId={this.props.match.params.id} />}
             </Col>
-          </Row>
-          <Row>
-            <Col span="24">
+            <Col span="12">
               <Map
                 organization={_.get(this.props, 'currentUser.organization', '')}
                 flightPlanOperator={_.get(
                   this.props.flightPlanDetails.data,
-                  'flightPlan.operator',
+                  'flightPlan.operator.organization',
                   ''
                 )}
                 mode={this.props.mode}
