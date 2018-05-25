@@ -174,7 +174,7 @@ class FlightPlan(BaseModel):
         (STATE_DELETED,'Deleted')]
 
     id = models.CharField('id', max_length=10, default=default_fp_slug, primary_key=True, unique=True)
-    state = FSMField(default=STATE_PLANNED, choices=STATES)
+    state = FSMField(default=STATE_PLANNED, choices=STATES, db_index=True)
     flight_id = models.CharField('flight id', max_length=100)
     waypoints = models.ForeignKey('WaypointMetadata', blank=True, null=True, on_delete=models.SET_NULL)
     telemetry = models.ForeignKey('TelemetryMetadata', blank=True, null=True, on_delete=models.SET_NULL)
@@ -244,7 +244,7 @@ class WaypointMetadata(BaseModel):
     v_hover = models.FloatField('velocity in hover (cm/s)', blank=True, null=True)
     distance = models.FloatField('distance of flight (m)', blank=True, null=True)
     location = models.TextField('location', blank=True, null=True)
-    country = models.CharField('location country code', max_length=2, blank=True, null=True)
+    country = models.CharField('location country code', max_length=2, blank=True, null=True, db_index=True)
     start_latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6, null=True)
     start_longitude = models.DecimalField('longitude', max_digits=9, decimal_places=6, null=True)
 
@@ -308,7 +308,7 @@ class TelemetryMetadata(BaseModel):
     actual_arrival_time = models.DateTimeField('actual arrival time', blank=True, null=True)
     distance = models.FloatField('distance of flight (m)', blank=True, null=True)
     location = models.TextField('location', blank=True, null=True)
-    country = models.CharField('location country code', max_length=2, blank=True, null=True)
+    country = models.CharField('location country code', max_length=2, blank=True, null=True, db_index=True)
     start_latitude = models.DecimalField('latitude', max_digits=9, decimal_places=6, null=True)
     start_longitude = models.DecimalField('longitude', max_digits=9, decimal_places=6, null=True)
 

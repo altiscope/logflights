@@ -18,9 +18,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.conf import settings
 from django.views.generic import TemplateView
-from planner import views, api_views
+from planner import views, api_views, external_urls
 from rest_framework_jwt.views import obtain_jwt_token
 from rest_framework_swagger.views import get_swagger_view
+
+api_patterns = [
+    path('api/experimental/', include('planner.external_urls', namespace='export_api')),
+]
 
 urlpatterns = [
     # App routes
@@ -29,12 +33,14 @@ urlpatterns = [
     path('auth/api-token-auth/', obtain_jwt_token),
 
     # api docs
-    re_path(r'_/docs/?', get_swagger_view(title='log.flights API')),
+    path('api/docs', get_swagger_view(title='log.flights API', patterns=api_patterns, url='/')),
+    re_path(r'_/docs/?', get_swagger_view(title='log.flights API', url=None)),
 
     # Administrative routes to be protected by http proxy / load balancer
     re_path(r'_/admin/?', admin.site.urls),
     re_path(r'_/health_check/?', views.HealthCheckView.as_view(), name='health_check'),
     path('api/internal/', include('planner.api_urls', namespace='planner_api')),
+    path('api/experimental/', include('planner.external_urls', namespace='export_api')),
     path('', TemplateView.as_view(template_name='react/index.html'), name="welcome"),
     # match all other routes
     re_path(r'^(?:.*)/?$', TemplateView.as_view(template_name='react/index.html'), name="welcome"),

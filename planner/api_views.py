@@ -40,7 +40,10 @@ from planner import models
 from planner import serializers
 from planner import tasks
 
+import waffle
+
 router = DefaultRouter()
+external_router = DefaultRouter(trailing_slash=False)
 assessment = assessment.Assess()
 
 class BaseViewset(mixins.CreateModelMixin,
@@ -70,6 +73,14 @@ class IsOperatorOrReadOnly(IsOperator):
     def has_object_permission(self, request, view, obj):
         return (request.method in SAFE_METHODS or
                 super(IsOperatorOrReadOnly, self).has_object_permission(request, view, obj))
+
+class IsExperimentalUser(IsAuthenticated):
+    def has_permission(self, request, view):
+        return waffle.flag_is_active(request, 'experimental_api')
+
+    def has_object_permission(self, request, view, obj):
+        is_authenticated = request.user.is_authenticated
+        return is_authenticated and waffle.flag_is_active(request, 'experimental_api')
 
 
 class Vehicles(BaseViewset):
@@ -803,3 +814,25 @@ class Assessments(mixins.RetrieveModelMixin,
         return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
 router.register(r'assessments', Assessments, 'assessments')
+
+class FlightPlanExport(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ An export API endpoint for tracking details about flights
+    """
+    serializer_class = serializers.FlightPlanExportSerializer
+    permission_classes = (IsExperimentalUser,)
+    queryset = models.FlightPlan.objects.filter(
+        ~Q(state=models.FlightPlan.STATE_DELETED),
+        Q(waypoints__country__in=settings.EXPORT_API_COUNTRIES) |
+        Q(telemetry__country__in=settings.EXPORT_API_COUNTRIES)
+    )
+
+class FlightPlanExportDetail(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """ An export API endpoint for tracking details about flights and volume
+    """
+    serializer_class = serializers.FlightPlanExportDetailSerializer
+    permission_classes = (IsExperimentalUser,)
+    # queryset is further filtered by primary key in `get_object()`
+    queryset = models.FlightPlan.objects.all()
+
+external_router.register('list', FlightPlanExport, base_name='experimental')
+external_router.register('flight', FlightPlanExportDetail, base_name='experimental')

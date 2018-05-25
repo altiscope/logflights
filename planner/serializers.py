@@ -1,11 +1,14 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
+from django.db.models.query_utils import Q
 
 from rest_framework import serializers
 
 from planner import tasks
 from . models import *
+
+from datetime import datetime
 
 class ManufacturerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,7 +43,6 @@ class OperatorVehicleField(serializers.PrimaryKeyRelatedField):
 
         return queryset
 
-
 class MissionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MissionType
@@ -61,10 +63,24 @@ class WaypointMetadataSerializer(serializers.ModelSerializer):
         fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message', 'waypoints', 'location', 'distance')
 
 class WaypointMetadataDetailSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = WaypointMetadata
-        fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message', 'location', 'distance',)
+        fields = ('id', 'path', 'state', 'processor', 'v_cruise', 'v_hover', 'error_message',
+                  'country', 'distance', 'location', 'start_latitude', 'start_longitude')
+
+class WaypointExportSerializer(WaypointSerializer):
+    class Meta(WaypointSerializer.Meta):
+        fields = ("longitude", "latitude")
+
+    def to_representation(self, instance):
+        r = super().to_representation(instance)
+        result = [r['longitude'], r['latitude']]
+        return result
+
+class WaypointMetadataExportSerializer(WaypointMetadataDetailSerializer):
+    waypoints = WaypointExportSerializer(many=True)
+    class Meta(WaypointMetadataDetailSerializer.Meta):
+        fields = WaypointMetadataDetailSerializer.Meta.fields + ('waypoints',)
 
 
 class FlightPlanPostSerializer(serializers.ModelSerializer):
@@ -96,30 +112,51 @@ class FlightPlanPostSerializer(serializers.ModelSerializer):
 class TelemetrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Telemetry
-        fields = ['id','time', 'latitude', 'longitude', 'altitude',
-                  'altitude_relative',
+        fields = ['id', 'time', 'latitude', 'longitude', 'altitude', 'altitude_relative',
                   'heading', 'vx', 'vy', 'vz', 'batt', 'voltage', 'current']
+        ordering = ('time', )
 
 class TelemetryMetadataSerializer(serializers.ModelSerializer):
     telemetries = TelemetrySerializer(many=True)
     class Meta:
         model = TelemetryMetadata
         fields = ['id', 'state', 'processor', 'actual_departure_time',
-                  'actual_arrival_time', 'autopilot_name', 'autopilot_version', 'vehicle_type', 'telemetries',]
+                  'actual_arrival_time', 'autopilot_name', 'autopilot_version',
+                  'vehicle_type', 'country', 'distance', 'location', 'telemetries',]
 
 
 class TelemetryMetadataDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = TelemetryMetadata
         fields = ['id', 'state', 'processor','path','error_message', 'actual_departure_time',
-                  'actual_arrival_time', 'autopilot_name', 'autopilot_version', 'vehicle_type',
-                  'location', 'distance',]
+                  'actual_arrival_time', 'autopilot_name', 'autopilot_version',
+                  'vehicle_type', 'country', 'distance', 'location']
 
 class OperatorDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operator
         fields = ['user_id', 'organization',]
 
+class TelemetryExportSerializer(TelemetrySerializer):
+    class Meta(TelemetrySerializer.Meta):
+        fields = ['time', 'longitude', 'latitude']
+
+    def to_representation(self, instance):
+        r = super().to_representation(instance)
+        r['time'] = datetime.fromtimestamp(int(r['time']))
+        result = [r['time'], r['longitude'], r['latitude']]
+        return result
+
+class TelemetryMetadataExportSerializer(TelemetryMetadataSerializer):
+    telemetries = serializers.SerializerMethodField()
+
+    def get_telemetries(self, telemetry_metadata):
+        queryset = Telemetry.objects.filter(
+            Q(longitude__isnull=False) & Q(latitude__isnull=False),
+            telemetry_metadata=telemetry_metadata
+        )
+        serializer = TelemetryExportSerializer(instance=queryset, many=True)
+        return serializer.data
 
 # Serializer to be used for GET request, serializes the vehicles and waypoint details
 class FlightPlanGetSerializer(FlightPlanPostSerializer):
@@ -284,3 +321,93 @@ class AssessmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assessment
         fields = '__all__'
+
+# Used by Experimental exports
+class FlightPlanExportRawSerializer(serializers.ModelSerializer):
+    """ Used to serialize before formatting
+    """
+    vehicle = serializers.PrimaryKeyRelatedField(read_only=True)
+    operator = OperatorSerializer(required=True)
+    mission_type = serializers.SlugRelatedField(queryset=MissionType.objects.all(), slug_field="title")
+    telemetry = TelemetryMetadataDetailSerializer(read_only=True)
+    waypoints = WaypointMetadataDetailSerializer(read_only=True)
+
+    class Meta:
+        model = FlightPlan
+        fields = ("id", "operator", "state", "mission_type", "flight_id",
+                  "planned_departure_time", "planned_arrival_time", "vehicle",
+                  "telemetry", "waypoints", "payload_weight", "mission_type", "operator", )
+        ordering = ("planned_departure_time",)
+
+class FlightPlanExportSerializer(FlightPlanExportRawSerializer):
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        def meta_fallback(key):
+            if hasattr(instance.telemetry, key) and getattr(instance.telemetry, key, None):
+                return getattr(instance.telemetry, key)
+            elif hasattr(instance.waypoints, key) and getattr(instance.waypoints, key, None):
+                return getattr(instance.waypoints, key)
+            else:
+                return None
+
+        result['operator_org'] = instance.operator.organization
+        result['operator_name'] = instance.operator.user.username
+        result['actual_departure_time'] = meta_fallback('actual_departure_time')
+        result['actual_arrival_time'] = meta_fallback('actual_arrival_time')
+        vehicle_types = dict(Vehicle.VEHICLE_TYPE_CHOICES)
+        result['vehicle'] = {
+            'manufacturer': instance.vehicle.manufacturer.name,
+            'model': instance.vehicle.model,
+            'serial_number': instance.vehicle.serial_number,
+            'vehicle_type': vehicle_types.get(instance.vehicle.vehicle_type),
+            'empty_weight': instance.vehicle.empty_weight
+        }
+        timestamps = ['planned_departure_time', 'planned_arrival_time', 'actual_departure_time', 'actual_arrival_time']
+        for field in timestamps:
+            if result[field] is not None:
+                if type(result[field]) is not datetime:
+                    result[field] = datetime.fromtimestamp(int(result[field]))
+
+        result['planned_duration'] = None
+        if result['planned_arrival_time'] and result['planned_departure_time']:
+            arrival = result['planned_arrival_time']
+            departure = result['planned_departure_time']
+            result['planned_duration'] = (arrival - departure).total_seconds() / 60.0
+
+        result['actual_duration'] = None
+        if result['actual_arrival_time'] and result['actual_departure_time']:
+            arrival = result['actual_arrival_time']
+            departure = result['actual_departure_time']
+            result['actual_duration'] = (arrival - departure).total_seconds() / 60.0
+
+        result['country'] = meta_fallback('country')
+        result['location'] =  meta_fallback('location')
+        result['distance'] =  meta_fallback('distance')
+        # handle both detail and list views
+        #    telemetries, waypoints or both means detail view
+        if result['telemetry'] is None:
+            result['telemetry'] = {}
+        if result['waypoints'] is None:
+            result['waypoints'] = {}
+
+        if 'telemetries' not in result['telemetry'] and 'waypoints' not in result['waypoints']:
+            del result['telemetry']
+            del result['waypoints']
+        else:
+            if 'telemetries' not in result['telemetry'] or result['telemetry']['telemetries'] is None:
+                result['telemetry'] = []
+            else:
+                result['telemetry'] = result['telemetry']['telemetries']
+
+            if 'waypoints' not in result['waypoints'] or result['waypoints']['waypoints'] is None:
+                result['waypoints'] = []
+            else:
+                result['waypoints'] = result['waypoints']['waypoints']
+
+        del result['operator']
+        del result['flight_id']
+        return result
+
+class FlightPlanExportDetailSerializer(FlightPlanExportSerializer):
+    telemetry = TelemetryMetadataExportSerializer(read_only=True)
+    waypoints = WaypointMetadataExportSerializer(read_only=True)

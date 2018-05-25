@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'health_check.contrib.celery',
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework.authtoken',
     'django_filters',
     'corsheaders',
     'waffle',
@@ -191,6 +192,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -234,6 +236,19 @@ GS_CREDENTIALS = None
 GS_BUCKET_NAME = os.getenv("GS_BUCKET_NAME", "logflights_data_test")
 
 GOOGLE_MAPS_API_KEY = 'ADD KEY TO local_settings.py'
+
+EXPORT_API_COUNTRIES = ['MW']
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    }
+}
 
 GIT_REVISION = None
 try:

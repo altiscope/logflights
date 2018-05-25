@@ -1,6 +1,6 @@
 future>=0.16.0
 Django==2.0.4
-Celery==4.1.0
+Celery==4.1.1
 requests==2.18.4
 redis==2.10.6
 geopy==1.13.0
