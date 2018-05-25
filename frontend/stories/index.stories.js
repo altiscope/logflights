@@ -1,10 +1,135 @@
 import React from 'react';
 import EditableTable from 'components/EditableTable';
+import { Input, Label, Select, Checkbox, Radio, Button, Card } from 'components/Form';
 import { storiesOf } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
-import 'sanitize.css/sanitize.css';
-import '../node_modules/antd/dist/antd.min.css';
 
+const selectOptions = [
+  { value: 10, label: 'Ten' },
+  { value: 20, label: 'Twenty' },
+  { value: 30, label: 'Thirty' },
+];
+
+storiesOf('UI', module).add('Kitchen Sink', () => (
+  <div>
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
+      <div style={{ padding: 10 }}>
+        <div>
+          <Label for="select" title="Select">
+            Select
+          </Label>
+        </div>
+        <div style={{ width: 250 }}>
+          <Select options={selectOptions} />
+        </div>
+      </div>
+      <div style={{ padding: 10 }}>
+        <div>
+          <Label for="select" title="Select">
+            Select with error
+          </Label>
+        </div>
+        <div style={{ width: 250 }}>
+          <Select options={selectOptions} hasError />
+        </div>
+      </div>
+      <div style={{ padding: 10 }}>
+        <div>
+          <Label for="select" title="Select">
+            Select with disabled
+          </Label>
+        </div>
+        <div style={{ width: 250 }}>
+          <Select isDisabled options={selectOptions} hasError />
+        </div>
+      </div>
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
+      <div style={{ padding: 10, width: 250 }}>
+        <div>
+          <Label for="example_a" title="Example A">
+            Default, typing and focused:
+          </Label>
+        </div>
+        <Input id="example_a" value="Example A" style={{ width: 220 }} />
+      </div>
+      <div style={{ padding: 10 }}>
+        <div>
+          <Label for="example_b" title="Example B">
+            Error:
+          </Label>
+        </div>
+        <Input value="Example B" hasError style={{ width: 220 }} />
+      </div>
+      <div style={{ padding: 10 }}>
+        <div>
+          <Label for="example_c" title="Example C">
+            Disabled:
+          </Label>
+        </div>
+        <Input value="Example C" disabled style={{ width: 220 }} />
+      </div>
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 10 }}>
+          <Checkbox name="SomeThing" checked={false}>
+            Test
+          </Checkbox>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Checkbox name="SomeThing" checked>
+            Test
+          </Checkbox>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Checkbox name="SomeThing" disabled>
+            Test
+          </Checkbox>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 10 }}>
+          <Radio name="radio" checked>
+            Test
+          </Radio>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Radio name="radio">Test</Radio>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Radio name="radio" disabled>
+            Test
+          </Radio>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 10 }}>
+          <Button>SIGN UP</Button>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Button disabled>SIGN UP</Button>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Button type="secondary">SIGN UP</Button>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Button type="secondary" disabled>
+            SIGN UP
+          </Button>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 10 }}>
+          <Card>SIGN UP</Card>
+        </div>
+        <div style={{ padding: 10 }}>
+          <Card boxShadow>SIGN UP</Card>
+        </div>
+      </div>
+    </div>
+  </div>
+));
 storiesOf('Components', module).add('Editable Table', () => (
   <EditableTable
     data={[

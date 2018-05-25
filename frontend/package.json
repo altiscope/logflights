@@ -219,6 +219,9 @@
     "testRegex": "tests/.*\\.test\\.js$"
   },
   "dependencies": {
+    "@fortawesome/fontawesome": "^1.1.8",
+    "@fortawesome/fontawesome-free-solid": "^5.0.13",
+    "@fortawesome/react-fontawesome": "^0.0.20",
     "antd": "^2.13.7",
     "axios": "^0.17.0",
     "babel-polyfill": "6.23.0",
@@ -243,6 +246,7 @@
     "minimist": "1.2.0",
     "moment": "^2.22.1",
     "moment-timezone": "~0.5.13",
+    "pretty-checkbox": "^3.0.3",
     "prop-types": "15.5.10",
     "randomstring": "^1.1.5",
     "react": "15.6.1",
@@ -255,6 +259,7 @@
     "react-redux": "5.0.5",
     "react-router-dom": "4.1.1",
     "react-router-redux": "5.0.0-alpha.6",
+    "react-select": "^2.0.0-beta.5",
     "recompose": "^0.27.0",
     "redux": "3.6.0",
     "redux-immutable": "4.0.0",
