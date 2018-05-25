@@ -3,7 +3,7 @@ from celery import shared_task
 from datetime import datetime
 from django.conf import settings
 from django.core.files.storage import default_storage
-from io import StringIO
+from io import BytesIO
 import json
 from pytz import utc
 from .models import Assessment, document_path
@@ -49,6 +49,8 @@ def run_assessment(assessment_id):
     try:
         a.run_at = datetime.now(utc)
         report = kls.assess(flight)
+        if type(report) is not dict:
+            report = vars(report)
         report['input'] = flight
         if report['success']:
             a.state = Assessment.STATE_SUCCESS
@@ -58,7 +60,8 @@ def run_assessment(assessment_id):
         report_filename = 'assess_{name}.json'.format(name=kls.info()['short_name'])
         report_path = document_path(a.flight_plan, report_filename)['path']
         j = json.dumps(report, ensure_ascii=False, indent=4, sort_keys=True, default=str)
-        default_storage.save(report_path, StringIO(j))
+        # Google Cloud Storage expects the file data to be in bytes, not str
+        default_storage.save(report_path, BytesIO(bytes(j, 'utf-8')))
         a.report = report_path
         a.save()
     except Exception as e:

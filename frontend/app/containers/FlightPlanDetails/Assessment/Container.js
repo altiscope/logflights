@@ -77,8 +77,9 @@ const Assessment = class extends React.Component {
     }
 
     const canSubmit =
-      authorizationAssessments.length === 0 ||
-      _.every(authorizationAssessments, ({ state }) => state === State.CANCELLED);
+      (authorizationAssessments.length === 0 ||
+        _.every(authorizationAssessments, ({ state }) => state === State.CANCELLED)) &&
+      (lastRunAssessment && lastRunAssessment.state === State.SUCCESS);
 
     return (
       <div>
@@ -97,7 +98,8 @@ const Assessment = class extends React.Component {
           </div>
           {isVisible && (
             <div>
-              {authorizationAssessments && (
+              {authorizationAssessments &&
+                authorizationAssessments.length > 0 && (
                 <div>
                   <H3>Authorized</H3>
                   {authorizationAssessments.map((assessment) => (

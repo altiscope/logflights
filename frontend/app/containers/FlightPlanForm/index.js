@@ -360,7 +360,9 @@ export class FlightPlanForm extends React.Component {
                       },
                       <DatePicker
                         style={controlWidth}
-                        showTime
+                        showTime={{
+                          format: 'HH:mm',
+                        }}
                         format="YYYY-MM-DD HH:mm"
                         placeholder="Select Time"
                       />

@@ -62,7 +62,7 @@ class IsOperator(IsAuthenticated):
 
 class IsOperatorForAssessment(IsAuthenticated):
     def has_object_permission(self, request, view, obj):
-        return (hasattr(obj, 'operator') and
+        return (hasattr(request.user, 'operator') and
                 request.user.is_authenticated and
                 request.user.operator == obj.flight_plan.operator)
 

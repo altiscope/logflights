@@ -5,7 +5,7 @@ import H2 from 'components/H2';
 import { getClient } from 'services/api';
 import Container from './Container';
 
-const POLL_INTERVAL = 60 * 1000;
+const POLL_INTERVAL = 30 * 1000;
 
 class Root extends Component {
   state = {

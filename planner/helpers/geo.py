@@ -46,6 +46,10 @@ class Geo(object):
         geo = GoogleV3(api_key=settings.GOOGLE_MAPS_API_KEY)
         p = GeoPoint(latitude = point.latitude, longitude = point.longitude)
         address = geo.reverse(p, sensor=True)
+        if address is None:
+            # It is possible for a user to have coordinates which are
+            # over the ocean.
+            return result
         r = address[0].raw['address_components']
         for loc in r:
             if 'neighborhood' in loc['types']:
