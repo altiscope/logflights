@@ -204,7 +204,7 @@ class WaypointsEditor extends React.Component {
             const status = await getClient().get(data.url);
             if (status.data.state === 'p') {
               self.setState({ isSubmitPending: false });
-              if (status.statusText === 'OK') {
+              if (status.status === 200) {
                 message.success('Waypoints Saved');
                 self.props.onSave(status.data.id ? status.data.id : undefined);
               } else {
@@ -218,6 +218,9 @@ class WaypointsEditor extends React.Component {
             }
           };
           check();
+        }).catch(() => {
+          this.setState({ isSubmitPending: false });
+          message.error('Please correct any invalid values then try again.');
         });
 
       checkState();
