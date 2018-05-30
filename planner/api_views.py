@@ -28,12 +28,14 @@ from rest_framework import viewsets
 from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import status
-from rest_framework.decorators import action, detail_route, list_route, api_view
+from rest_framework.decorators import action, detail_route, list_route, api_view, renderer_classes, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
-from rest_framework.schemas import AutoSchema
+from rest_framework.schemas import AutoSchema, SchemaGenerator
 from rest_framework.reverse import reverse
+from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 from planner import assessment
 from planner import models
@@ -816,10 +818,11 @@ class Assessments(mixins.RetrieveModelMixin,
 router.register(r'assessments', Assessments, 'assessments')
 
 class FlightPlanExport(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """ An export API endpoint for tracking details about flights
+    """ List flights
     """
     serializer_class = serializers.FlightPlanExportSerializer
     permission_classes = (IsExperimentalUser,)
+    authentication_classes = (TokenAuthentication,)
     queryset = models.FlightPlan.objects.filter(
         ~Q(state=models.FlightPlan.STATE_DELETED),
         Q(waypoints__country__in=settings.EXPORT_API_COUNTRIES) |
@@ -827,12 +830,20 @@ class FlightPlanExport(mixins.ListModelMixin, viewsets.GenericViewSet):
     )
 
 class FlightPlanExportDetail(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    """ An export API endpoint for tracking details about flights and volume
+    """ Flight detail
     """
     serializer_class = serializers.FlightPlanExportDetailSerializer
     permission_classes = (IsExperimentalUser,)
+    authentication_classes = (TokenAuthentication,)
     # queryset is further filtered by primary key in `get_object()`
     queryset = models.FlightPlan.objects.all()
 
 external_router.register('list', FlightPlanExport, base_name='experimental')
 external_router.register('flight', FlightPlanExportDetail, base_name='experimental')
+
+@api_view()
+@renderer_classes([SwaggerUIRenderer, OpenAPIRenderer])
+@permission_classes((AllowAny,))
+def schema_view(request):
+    generator = SchemaGenerator(title='log.flights API', patterns=external_router.urls, url='/api/experimental')
+    return Response(generator.get_schema())

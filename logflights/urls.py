@@ -22,10 +22,6 @@ from planner import views, api_views, external_urls
 from rest_framework_jwt.views import obtain_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
-api_patterns = [
-    path('api/experimental/', include('planner.external_urls', namespace='export_api')),
-]
-
 urlpatterns = [
     # App routes
     path('accounts/', include('allauth.urls')),
@@ -33,8 +29,8 @@ urlpatterns = [
     path('auth/api-token-auth/', obtain_jwt_token),
 
     # api docs
-    path('api/docs', get_swagger_view(title='log.flights API', patterns=api_patterns, url='/')),
-    re_path(r'_/docs/?', get_swagger_view(title='log.flights API', url=None)),
+    path('api/docs', api_views.schema_view),
+    re_path(r'_/docs/?', get_swagger_view(title='log.flights API')),
 
     # Administrative routes to be protected by http proxy / load balancer
     re_path(r'_/admin/?', admin.site.urls),
