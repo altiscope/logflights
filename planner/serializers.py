@@ -9,6 +9,16 @@ from planner import tasks
 from . models import *
 
 from datetime import datetime
+from pytz import utc
+
+def _zulu_datetime(date_object):
+    """ UTC datetime with second precision
+    @param datetime object
+    """
+    if type(date_object) is datetime:
+        date_object = date_object.replace(microsecond=0, tzinfo=utc)
+    return date_object
+
 
 class ManufacturerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -124,7 +134,6 @@ class TelemetryMetadataSerializer(serializers.ModelSerializer):
                   'actual_arrival_time', 'autopilot_name', 'autopilot_version',
                   'vehicle_type', 'country', 'distance', 'location', 'telemetries',]
 
-
 class TelemetryMetadataDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = TelemetryMetadata
@@ -142,10 +151,7 @@ class TelemetryExportSerializer(TelemetrySerializer):
         fields = ['time', 'longitude', 'latitude']
 
     def to_representation(self, instance):
-        r = super().to_representation(instance)
-        r['time'] = datetime.fromtimestamp(int(r['time']))
-        result = [r['time'], r['longitude'], r['latitude']]
-        return result
+        return [_zulu_datetime(instance.time), instance.longitude, instance.latitude]
 
 class TelemetryMetadataExportSerializer(TelemetryMetadataSerializer):
     telemetries = serializers.SerializerMethodField()
@@ -343,17 +349,33 @@ class FlightPlanExportSerializer(FlightPlanExportRawSerializer):
     def to_representation(self, instance):
         result = super().to_representation(instance)
         def meta_fallback(key):
+            value = None
             if hasattr(instance.telemetry, key) and getattr(instance.telemetry, key, None):
-                return getattr(instance.telemetry, key)
+                value = getattr(instance.telemetry, key)
             elif hasattr(instance.waypoints, key) and getattr(instance.waypoints, key, None):
-                return getattr(instance.waypoints, key)
-            else:
-                return None
+                value = getattr(instance.waypoints, key)
+            if type(value) is datetime:
+                value = _zulu_datetime(value)
+            return value
+
+        result['planned_arrival_time'] = meta_fallback('planned_arrival_time')
+        result['planned_departure_time'] = meta_fallback('planned_departure_time')
+        result['planned_duration'] = None
+        if result['planned_arrival_time'] and result['planned_departure_time']:
+            arrival = result['planned_arrival_time']
+            departure = result['planned_departure_time']
+            result['planned_duration'] = (arrival - departure).total_seconds() / 60.0
+
+        result['actual_arrival_time'] = meta_fallback('actual_arrival_time')
+        result['actual_departure_time'] = meta_fallback('actual_departure_time')
+        result['actual_duration'] = None
+        if result['actual_arrival_time'] and result['actual_departure_time']:
+            arrival = result['actual_arrival_time']
+            departure = result['actual_departure_time']
+            result['actual_duration'] = (arrival - departure).total_seconds() / 60.0
 
         result['operator_org'] = instance.operator.organization
         result['operator_name'] = instance.operator.user.username
-        result['actual_departure_time'] = meta_fallback('actual_departure_time')
-        result['actual_arrival_time'] = meta_fallback('actual_arrival_time')
         vehicle_types = dict(Vehicle.VEHICLE_TYPE_CHOICES)
         result['vehicle'] = {
             'manufacturer': instance.vehicle.manufacturer.name,
@@ -362,23 +384,6 @@ class FlightPlanExportSerializer(FlightPlanExportRawSerializer):
             'vehicle_type': vehicle_types.get(instance.vehicle.vehicle_type),
             'empty_weight': instance.vehicle.empty_weight
         }
-        timestamps = ['planned_departure_time', 'planned_arrival_time', 'actual_departure_time', 'actual_arrival_time']
-        for field in timestamps:
-            if result[field] is not None:
-                if type(result[field]) is not datetime:
-                    result[field] = datetime.fromtimestamp(int(result[field]))
-
-        result['planned_duration'] = None
-        if result['planned_arrival_time'] and result['planned_departure_time']:
-            arrival = result['planned_arrival_time']
-            departure = result['planned_departure_time']
-            result['planned_duration'] = (arrival - departure).total_seconds() / 60.0
-
-        result['actual_duration'] = None
-        if result['actual_arrival_time'] and result['actual_departure_time']:
-            arrival = result['actual_arrival_time']
-            departure = result['actual_departure_time']
-            result['actual_duration'] = (arrival - departure).total_seconds() / 60.0
 
         result['country'] = meta_fallback('country')
         result['location'] =  meta_fallback('location')
