@@ -83,9 +83,7 @@ class WaypointExportSerializer(WaypointSerializer):
         fields = ("longitude", "latitude")
 
     def to_representation(self, instance):
-        r = super().to_representation(instance)
-        result = [r['longitude'], r['latitude']]
-        return result
+        return [str(instance.longitude), str(instance.latitude)]
 
 class WaypointMetadataExportSerializer(WaypointMetadataDetailSerializer):
     waypoints = WaypointExportSerializer(many=True)
@@ -151,7 +149,7 @@ class TelemetryExportSerializer(TelemetrySerializer):
         fields = ['time', 'longitude', 'latitude']
 
     def to_representation(self, instance):
-        return [_zulu_datetime(instance.time), instance.longitude, instance.latitude]
+        return [_zulu_datetime(instance.time), str(instance.longitude), str(instance.latitude)]
 
 class TelemetryMetadataExportSerializer(TelemetryMetadataSerializer):
     telemetries = serializers.SerializerMethodField()

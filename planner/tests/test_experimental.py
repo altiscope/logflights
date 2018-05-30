@@ -4,6 +4,7 @@ from datetime import datetime
 import pytz
 from decimal import Decimal
 from django.test import TestCase
+from django.test.utils import override_settings
 from rest_framework.test import force_authenticate, APIRequestFactory
 from planner.api_views import FlightPlanExport, FlightPlanExportDetail
 from planner.models import Operator, Vehicle, FlightPlan, WaypointMetadata, Waypoint, TelemetryMetadata, Telemetry, Manufacturer
@@ -12,6 +13,7 @@ from rest_framework.authtoken.models import Token
 from .utils import create_user_operator
 from waffle.models import Flag
 
+@override_settings(DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage', MEDIA_ROOT='/tmp')
 class FlightPlanExportAPI(TestCase):
     def setUp(self):
         self._user, self._operator = create_user_operator()
@@ -25,13 +27,14 @@ class FlightPlanExportAPI(TestCase):
             manufacturer=manufacturer,
             model= "01",
             serial_number="EcoMUST",
-            vehicle_type=2,
+            vehicle_type=Vehicle.VEHICLE_TYPE_FIXED_WING,
             empty_weight=1.4
         )
         self._flight_plan = FlightPlan.objects.create(
             flight_id='test_flight_1',
             vehicle=self._vehicle,
             operator=self._operator,
+            state=FlightPlan.STATE_COMPLETED,
             payload_weight=0)
         self._flight_plan.waypoints = WaypointMetadata.objects.create(
             operator=self._operator,
@@ -109,3 +112,11 @@ class FlightPlanExportAPI(TestCase):
         self.assertEqual(result['id'], flight_plan_id)
         # check that null telemetries are excluded
         self.assertEqual(len(result['telemetry']), 2)
+        # telemetry = (time, long, lat)
+        # check longitude is a string
+        self.assertIsInstance(result['telemetry'][0][1], str)
+
+        self.assertEqual(len(result['waypoints']), 2)
+        # waypoint = (long, lat)
+        # check latitude is a string
+        self.assertIsInstance(result['waypoints'][0][1], str)
