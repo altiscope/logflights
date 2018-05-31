@@ -373,7 +373,8 @@ class FlightPlanExportSerializer(FlightPlanExportRawSerializer):
             result['actual_duration'] = (arrival - departure).total_seconds() / 60.0
 
         result['operator_org'] = instance.operator.organization
-        result['operator_name'] = instance.operator.user.username
+        operator_name = instance.operator.user.first_name + ' ' + instance.operator.user.last_name
+        result['operator_name'] = operator_name
         vehicle_types = dict(Vehicle.VEHICLE_TYPE_CHOICES)
         result['vehicle'] = {
             'manufacturer': instance.vehicle.manufacturer.name,
